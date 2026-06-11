@@ -241,6 +241,10 @@ export default function Projects() {
 // ── PROJECT CARD COMPONENT ──
 function ProjectCard({ project }: { project: (typeof projects)[0] }) {
   const [hovered, setHovered] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  // Free screenshot service
+  const screenshotUrl = `https://api.microlink.io/?url=${encodeURIComponent(project.url)}&screenshot=true&meta=false&embed=screenshot.url`;
 
   return (
     <div
@@ -261,7 +265,7 @@ function ProjectCard({ project }: { project: (typeof projects)[0] }) {
         position: "relative",
       }}
     >
-      {/* TOP LINE ANIMATION */}
+      {/* TOP LINE */}
       <div
         style={{
           position: "absolute",
@@ -273,34 +277,61 @@ function ProjectCard({ project }: { project: (typeof projects)[0] }) {
           transform: hovered ? "scaleX(1)" : "scaleX(0)",
           transformOrigin: "left",
           transition: "transform 0.4s ease",
+          zIndex: 2,
         }}
       />
 
-      {/* IFRAME PREVIEW */}
-      <div style={{ position: "relative", overflow: "hidden", height: "200px" }}>
-        <iframe
-          src={project.url}
-          title={project.title}
-          scrolling="no"
-          style={{
-            width: "100%",
-            height: "200px",
-            border: "none",
-            pointerEvents: "none",
-            display: "block",
-            transform: hovered ? "scale(1.04)" : "scale(1)",
-            transition: "transform 0.5s",
-          }}
-        />
-        {/* OVERLAY — prevents iframe interaction */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "transparent",
-            zIndex: 2,
-          }}
-        />
+      {/* SCREENSHOT IMAGE */}
+      <div
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          height: "200px",
+          background: "#090c14",
+        }}
+      >
+        {!imgError ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={screenshotUrl}
+            alt={project.title}
+            onError={() => setImgError(true)}
+            style={{
+              width: "100%",
+              height: "200px",
+              objectFit: "cover",
+              display: "block",
+              transition: "transform 0.5s",
+              transform: hovered ? "scale(1.04)" : "scale(1)",
+            }}
+          />
+        ) : (
+          /* FALLBACK — gradient card when screenshot fails */
+          <div
+            style={{
+              width: "100%",
+              height: "200px",
+              background: `linear-gradient(135deg, #0d1a2f, #0d2a1f)`,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.5rem",
+            }}
+          >
+            <span style={{ fontSize: "2.5rem" }}>🌐</span>
+            <span
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "0.7rem",
+                color: "#00f5c8",
+                letterSpacing: "0.1em",
+              }}
+            >
+              {project.title}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* CARD BODY */}
@@ -371,7 +402,6 @@ function ProjectCard({ project }: { project: (typeof projects)[0] }) {
           {project.outcome}
         </p>
 
-        {/* FOOTER */}
         <div
           style={{
             marginTop: "1rem",
@@ -412,7 +442,6 @@ function ProjectCard({ project }: { project: (typeof projects)[0] }) {
               padding: "0.28rem 0.7rem",
               borderRadius: "20px",
               textDecoration: "none",
-              transition: "all 0.2s",
               whiteSpace: "nowrap",
               flexShrink: 0,
             }}

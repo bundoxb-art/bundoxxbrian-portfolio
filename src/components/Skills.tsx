@@ -52,15 +52,21 @@ export default function Skills() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !animated) {
-          setAnimated(true);
-        }
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setAnimated(true);
+            observer.disconnect();
+          }
+        });
       },
-      { threshold: 0.3 }
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
     );
-    if (barsRef.current) observer.observe(barsRef.current);
-    return () => observer.disconnect();
-  }, [animated]);
+    const current = barsRef.current;
+    if (current) observer.observe(current);
+    return () => {
+      if (current) observer.unobserve(current);
+    };
+  }, []);
 
   return (
     <section

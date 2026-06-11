@@ -297,6 +297,53 @@ export default function About() {
             ))}
           </div>
 
+          {/* LOCATION MAP */}
+          <div
+            style={{
+              background: "#0d1220",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "12px",
+              overflow: "hidden",
+              marginBottom: "1.8rem",
+            }}
+          >
+            <iframe
+              src="https://www.openstreetmap.org/export/embed.html?bbox=39.6290%2C-4.0450%2C39.6490%2C-4.0250&layer=mapnik&marker=-4.0350%2C39.6390"
+              width="100%"
+              height="180"
+              style={{
+                border: "none",
+                display: "block",
+                filter:
+                  "invert(90%) hue-rotate(180deg) brightness(0.85) saturate(0.9)",
+              }}
+              loading="lazy"
+              title="Mombasa Makupa Location"
+            />
+            <div
+              style={{
+                padding: "0.8rem 1rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.6rem",
+              }}
+            >
+              <span style={{ fontSize: "1.1rem" }}>📍</span>
+              <div
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: "0.72rem",
+                  color: "#9ba3bb",
+                }}
+              >
+                <strong style={{ color: "#00f5c8", display: "block" }}>
+                  Mombasa, Makupa
+                </strong>
+                Near Makupa Police Station, Kenya
+              </div>
+            </div>
+          </div>
+
           {/* BUTTONS */}
           <div style={{ display: "flex", gap: "0.9rem", flexWrap: "wrap" }}>
             <a

@@ -49,3 +49,54 @@ body {
   opacity: 1;
   transform: none;
 }
+
+/* ══ MOBILE FIXES ══ */
+@media (max-width: 768px) {
+  /* Hero — stack vertically */
+  .hero-content {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* About — stack vertically */  
+  .about-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Projects — single column */
+  .projects-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Skills — 2 columns on mobile */
+  .skills-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Feedback — stack */
+  .feedback-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Contact — stack */
+  .contact-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Trust bar — wrap */
+  .trust-bar {
+    gap: 0.8rem !important;
+  }
+
+  /* Social dock — smaller */
+  .social-dock {
+    right: 10px !important;
+    bottom: 80px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Skills — single column on small phones */
+  .skills-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
