@@ -5,7 +5,6 @@ import {
   format,
   addDays,
   isSameDay,
-  isBefore,
   startOfDay,
 } from "date-fns";
 
@@ -100,9 +99,8 @@ export default function BookingCalendar() {
     if (!selectedDate || !selectedTime) return "#";
 
     const [time, period] = selectedTime.split(" ");
-    let [hours, minutes] = time.split(":").map(Number);
-    if (period === "PM" && hours !== 12) hours += 12;
-    if (period === "AM" && hours === 12) hours = 0;
+    const [rawHours, minutes] = time.split(":").map(Number);
+    const hours = period === "PM" && rawHours !== 12 ? rawHours + 12 : period === "AM" && rawHours === 12 ? 0 : rawHours;
 
     const start = new Date(selectedDate);
     start.setHours(hours, minutes, 0, 0);
@@ -557,6 +555,7 @@ export default function BookingCalendar() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
             
+            <a
               href={getCalendarLink()}
               target="_blank"
               rel="noopener noreferrer"
