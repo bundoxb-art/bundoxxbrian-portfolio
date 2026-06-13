@@ -47,7 +47,7 @@ export default function Hero() {
   return (
     <section
       id="hero"
-      className="relative min-h-screen flex items-center overflow-hidden"
+      className="relative min-h-screen flex items-center overflow-hidden hero-pad"
       style={{ padding: "7rem 2rem 4rem" }}
     >
       {/* BACKGROUND GLOW */}
@@ -71,7 +71,7 @@ export default function Hero() {
 
       {/* CONTENT */}
       <div
-        className="relative z-10 w-full mx-auto grid gap-16 items-center"
+        className="hero-grid relative z-10 w-full mx-auto grid gap-16 items-center"
         style={{
           maxWidth: "1200px",
           gridTemplateColumns: "1fr 1fr",
@@ -219,8 +219,8 @@ export default function Hero() {
         </div>
 
         {/* RIGHT — Image Slider */}
-        <div className="flex justify-center items-center">
-          <div style={{ position: "relative", width: "380px", height: "520px" }}>
+        <div className="flex justify-center items-center hero-right">
+          <div className="hero-img-wrap" style={{ position: "relative", width: "380px", height: "520px" }}>
 
             {/* GRADIENT FRAME */}
             <div

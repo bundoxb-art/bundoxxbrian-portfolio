@@ -8,6 +8,7 @@ const navLinks = [
   { label: "Work", href: "#projects" },
   { label: "Reviews", href: "#feedback" },
   { label: "Skills", href: "#skills" },
+  { label: "Book Call", href: "/book" },  // ← ADD THIS LINE
   { label: "Contact", href: "#contact" },
 ];
 
@@ -35,6 +36,7 @@ export default function Navbar() {
         {/* LOGO */}
         <Link href="/" className="flex items-center gap-2 no-underline">
           <span
+            className="nav-brand-text"
             style={{
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: "1.5rem",

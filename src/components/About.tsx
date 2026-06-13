@@ -23,6 +23,7 @@ export default function About() {
       }}
     >
       <div
+        className="about-grid"
         style={{
           maxWidth: "1200px",
           margin: "0 auto",
@@ -32,8 +33,8 @@ export default function About() {
           alignItems: "center",
         }}
       >
-        {/* LEFT — Photo */}
-        <div style={{ position: "relative" }}>
+        {/* LEFT — Photo Collage */}
+        <div className="about-grid-left" style={{ position: "relative" }}>
           {/* MAIN IMAGE */}
           <div
             style={{
@@ -42,6 +43,7 @@ export default function About() {
               aspectRatio: "4/5",
               borderRadius: "12px",
               overflow: "hidden",
+              boxShadow: "0 30px 70px rgba(0,0,0,0.5)",
             }}
           >
             <Image
@@ -51,6 +53,40 @@ export default function About() {
               style={{
                 objectFit: "cover",
                 objectPosition: "top center",
+              }}
+            />
+          </div>
+
+          {/* ACCENT IMAGE — overlapping, Bee branded */}
+          <div
+            style={{
+              position: "absolute",
+              top: "-24px",
+              right: "-24px",
+              width: "42%",
+              aspectRatio: "4/5",
+              borderRadius: "12px",
+              overflow: "hidden",
+              border: "3px solid #05070d",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.6)",
+              zIndex: 2,
+            }}
+          >
+            <Image
+              src="/photo2.jpg"
+              alt="Brian — BundoxxThe Bee"
+              fill
+              style={{
+                objectFit: "cover",
+                objectPosition: "top center",
+              }}
+            />
+            {/* Teal overlay tint for brand cohesion */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "linear-gradient(135deg, rgba(0,245,200,0.15), rgba(139,92,246,0.1))",
               }}
             />
           </div>
@@ -69,6 +105,8 @@ export default function About() {
               fontSize: "1.6rem",
               lineHeight: "1",
               textAlign: "center",
+              zIndex: 3,
+              boxShadow: "0 12px 30px rgba(0,245,200,0.3)",
             }}
           >
             3+

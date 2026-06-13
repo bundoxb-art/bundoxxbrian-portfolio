@@ -70,7 +70,7 @@ export default function BottomNav() {
           ))}
 
           {/* CENTER GAP for hire me button */}
-          <div style={{ width: "68px", flexShrink: 0 }} />
+          <div className="bn-gap" style={{ width: "68px", flexShrink: 0 }} />
 
           {/* RIGHT 2 ITEMS */}
           {navItems.slice(2).map((item) => (
@@ -166,6 +166,7 @@ function NavItem({
     <a
       href={item.href}
       onClick={onClick}
+      className="bn-item"
       style={{
         display: "flex",
         flexDirection: "column",

@@ -9,6 +9,7 @@ const items = [
 export default function TrustBar() {
   return (
     <div
+      className="trust-bar"
       style={{
         background: "#090c14",
         borderTop: "1px solid rgba(255,255,255,0.08)",

@@ -32,6 +32,7 @@ const buttons = [
 export default function SocialDock() {
   return (
     <div
+      className="social-dock"
       style={{
         position: "fixed",
         right: "22px",

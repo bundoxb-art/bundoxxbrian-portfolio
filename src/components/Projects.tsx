@@ -78,6 +78,7 @@ export default function Projects() {
   return (
     <section
       id="projects"
+      className="section-pad"
       style={{
         padding: "5.5rem 2rem",
         borderTop: "1px solid rgba(255,255,255,0.08)",
@@ -181,6 +182,7 @@ export default function Projects() {
 
         {/* PROJECTS GRID */}
         <div
+          className="projects-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",

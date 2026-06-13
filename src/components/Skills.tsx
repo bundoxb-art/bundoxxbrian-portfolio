@@ -71,6 +71,7 @@ export default function Skills() {
   return (
     <section
       id="skills"
+      className="section-pad"
       style={{
         padding: "5.5rem 2rem",
         borderTop: "1px solid rgba(255,255,255,0.08)",
@@ -132,6 +133,7 @@ export default function Skills() {
 
         {/* SKILL CATEGORIES GRID */}
         <div
+          className="skills-cat-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",

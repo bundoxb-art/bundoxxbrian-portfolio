@@ -43,7 +43,12 @@ const contacts = [
 
 export default function Contact() {
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("Freelance Project");
   const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
 
   function sendWA() {
     const text = `Hi Brian! I am ${name || "Someone"}. ${message || "I saw your portfolio and want to discuss a project."}`;
@@ -53,9 +58,39 @@ export default function Contact() {
     );
   }
 
+  async function sendMessage() {
+    if (!name.trim() || !message.trim()) {
+      setError("Please fill in your name and message");
+      return;
+    }
+    setSending(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, subject, message }),
+      });
+
+      if (!res.ok) throw new Error("Failed to send");
+
+      setSent(true);
+      setName("");
+      setEmail("");
+      setMessage("");
+      setTimeout(() => setSent(false), 5000);
+    } catch {
+      setError("Couldn't send. Please try WhatsApp instead!");
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <section
       id="contact"
+      className="section-pad"
       style={{
         padding: "5.5rem 2rem",
         borderTop: "1px solid rgba(255,255,255,0.08)",
@@ -185,6 +220,7 @@ export default function Contact() {
         </h2>
 
         <div
+          className="contact-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1.2fr",
@@ -223,6 +259,7 @@ export default function Contact() {
             }}
           >
             <div
+              className="form-row-2"
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
@@ -281,6 +318,8 @@ export default function Contact() {
                 </label>
                 <input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="jane@email.com"
                   style={{
                     width: "100%",
@@ -298,6 +337,45 @@ export default function Contact() {
                   onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                 />
               </div>
+            </div>
+
+            <div style={{ marginBottom: "0.85rem" }}>
+              <label
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: "0.63rem",
+                  color: "#5a6278",
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  display: "block",
+                  marginBottom: "0.4rem",
+                }}
+              >
+                Subject
+              </label>
+              <select
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                style={{
+                  width: "100%",
+                  background: "#05070d",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "#eef0f6",
+                  fontFamily: "'Outfit', sans-serif",
+                  fontSize: "0.87rem",
+                  padding: "0.72rem 0.9rem",
+                  borderRadius: "8px",
+                  outline: "none",
+                  minHeight: "44px",
+                  cursor: "pointer",
+                }}
+              >
+                <option>Freelance Project</option>
+                <option>Data Entry / VA</option>
+                <option>Brand / Logo Design</option>
+                <option>Full-Time Role</option>
+                <option>Collaboration</option>
+              </select>
             </div>
 
             <div style={{ marginBottom: "0.85rem" }}>
@@ -337,6 +415,73 @@ export default function Contact() {
               />
             </div>
 
+            {error && (
+              <div
+                style={{
+                  background: "rgba(255, 59, 48, 0.1)",
+                  border: "1px solid rgba(255, 59, 48, 0.3)",
+                  color: "#ff3b30",
+                  padding: "0.7rem 0.9rem",
+                  borderRadius: "8px",
+                  fontSize: "0.82rem",
+                  marginBottom: "0.8rem",
+                }}
+              >
+                {error}
+              </div>
+            )}
+
+            {sent && (
+              <div
+                style={{
+                  background: "rgba(0, 245, 200, 0.1)",
+                  border: "1px solid rgba(0, 245, 200, 0.3)",
+                  color: "#00f5c8",
+                  padding: "0.7rem 0.9rem",
+                  borderRadius: "8px",
+                  fontSize: "0.82rem",
+                  marginBottom: "0.8rem",
+                }}
+              >
+                ✓ Message sent! I'll be in touch soon.
+              </div>
+            )}
+
+            <button
+              onClick={sendMessage}
+              disabled={sending}
+              style={{
+                width: "100%",
+                background: sending ? "#666" : "#00f5c8",
+                color: sending ? "#999" : "#05070d",
+                border: "none",
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "0.82rem",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                padding: "0.88rem",
+                borderRadius: "50px",
+                cursor: sending ? "not-allowed" : "pointer",
+                fontWeight: "700",
+                transition: "all 0.25s",
+                marginBottom: "0.6rem",
+              }}
+              onMouseEnter={(e) => {
+                if (!sending) {
+                  e.currentTarget.style.background = "#00d9ad";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!sending) {
+                  e.currentTarget.style.background = "#00f5c8";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }
+              }}
+            >
+              {sending ? "Sending..." : "Send Message"}
+            </button>
+
             <button
               onClick={sendWA}
               style={{
@@ -366,37 +511,6 @@ export default function Contact() {
             >
               💬 Send via WhatsApp
             </button>
-
-            <a
-              href="mailto:Bundoxb@gmail.com"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "100%",
-                background: "transparent",
-                color: "#eef0f6",
-                border: "1px solid rgba(255,255,255,0.08)",
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: "0.8rem",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                padding: "0.85rem",
-                borderRadius: "50px",
-                textDecoration: "none",
-                transition: "all 0.25s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "#00f5c8";
-                e.currentTarget.style.color = "#00f5c8";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                e.currentTarget.style.color = "#eef0f6";
-              }}
-            >
-              ✉ Send via Email
-            </a>
           </div>
         </div>
       </div>

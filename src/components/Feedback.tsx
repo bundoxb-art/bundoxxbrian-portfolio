@@ -69,6 +69,7 @@ export default function Feedback() {
   return (
     <section
       id="feedback"
+      className="section-pad"
       style={{
         padding: "5.5rem 2rem",
         borderTop: "1px solid rgba(255,255,255,0.08)",
@@ -120,6 +121,7 @@ export default function Feedback() {
         </p>
 
         <div
+          className="feedback-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
@@ -164,6 +166,7 @@ export default function Feedback() {
 
             {/* STARS */}
             <div
+              className="star-pick"
               style={{
                 display: "flex",
                 gap: "0.4rem",
