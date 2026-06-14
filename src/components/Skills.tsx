@@ -48,6 +48,33 @@ const bars = [
 export default function Skills() {
   const barsRef = useRef<HTMLDivElement>(null);
   const [animated, setAnimated] = useState(false);
+  const [guideEmail, setGuideEmail] = useState("");
+  const [guideSending, setGuideSending] = useState(false);
+  const [guideSent, setGuideSent] = useState(false);
+  const [guideError, setGuideError] = useState("");
+
+  async function sendGuide() {
+    if (!guideEmail.includes("@")) {
+      setGuideError("Please enter a valid email");
+      return;
+    }
+    setGuideSending(true);
+    setGuideError("");
+    try {
+      const res = await fetch("/api/tech-guide", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: guideEmail }),
+      });
+      if (!res.ok) throw new Error();
+      setGuideSent(true);
+      setGuideEmail("");
+    } catch {
+      setGuideError("Something went wrong. Try again!");
+    } finally {
+      setGuideSending(false);
+    }
+  }
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -218,6 +245,112 @@ export default function Skills() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* DOWNLOAD RESOURCE GUIDE */}
+        <div
+          className="reveal"
+          style={{
+            marginTop: "2rem",
+            background: "linear-gradient(135deg, rgba(245,200,66,0.06), rgba(0,245,200,0.04))",
+            border: "1px solid rgba(245,200,66,0.2)",
+            borderRadius: "16px",
+            padding: "2rem",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📥</div>
+          <h3
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "1.6rem",
+              letterSpacing: "0.05em",
+              color: "#eef0f6",
+              marginBottom: "0.5rem",
+            }}
+          >
+            Want to Learn This Stack?
+          </h3>
+          <p
+            style={{
+              fontSize: "0.85rem",
+              color: "#9ba3bb",
+              maxWidth: "480px",
+              margin: "0 auto 1.3rem",
+              lineHeight: "1.7",
+            }}
+          >
+            Get my <strong style={{ color: "#f5c842" }}>free Dev Resource Guide</strong> — the
+            exact docs & tutorials I used to learn React, Next.js, TypeScript and more. Plus
+            early access to &quot;Learn From Brian&quot; courses! 🐝
+          </p>
+
+          {!guideSent ? (
+            <>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "0.6rem",
+                  maxWidth: "420px",
+                  margin: "0 auto",
+                  flexWrap: "wrap",
+                  justifyContent: "center",
+                }}
+              >
+                <input
+                  type="email"
+                  value={guideEmail}
+                  onChange={(e) => setGuideEmail(e.target.value)}
+                  placeholder="you@email.com"
+                  style={{
+                    flex: 1,
+                    minWidth: "180px",
+                    background: "#05070d",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    color: "#eef0f6",
+                    fontFamily: "'Outfit', sans-serif",
+                    fontSize: "0.85rem",
+                    padding: "0.7rem 1rem",
+                    borderRadius: "50px",
+                    outline: "none",
+                    minHeight: "44px",
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = "#f5c842")}
+                  onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+                />
+                <button
+                  onClick={sendGuide}
+                  disabled={guideSending}
+                  style={{
+                    background: "linear-gradient(135deg, #f5c842, #00f5c8)",
+                    color: "#05070d",
+                    border: "none",
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: "0.75rem",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    padding: "0.75rem 1.5rem",
+                    borderRadius: "50px",
+                    cursor: guideSending ? "not-allowed" : "pointer",
+                    fontWeight: "700",
+                    opacity: guideSending ? 0.6 : 1,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {guideSending ? "Sending..." : "Send Me the Guide"}
+                </button>
+              </div>
+              {guideError && (
+                <p style={{ color: "#f5c842", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.7rem", marginTop: "0.6rem" }}>
+                  {guideError}
+                </p>
+              )}
+            </>
+          ) : (
+            <p style={{ color: "#00f5c8", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.8rem" }}>
+              🎉 Check your email — your guide is on its way!
+            </p>
+          )}
         </div>
       </div>
     </section>

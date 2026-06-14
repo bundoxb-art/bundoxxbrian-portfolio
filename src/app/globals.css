@@ -280,6 +280,17 @@ html, body {
   opacity: 1;
   transform: none;
 }
+/* ── SERVICES GRID ── */
+@media (max-width: 1024px) {
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+@media (max-width: 480px) {
+  .services-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
 /* ── PAYMENT GRID ── */
 @media (max-width: 1024px) {
   .payment-grid {
