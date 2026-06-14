@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const navLinks = [
   { label: "About", href: "#about" },
@@ -35,6 +36,18 @@ export default function Navbar() {
       >
         {/* LOGO */}
         <Link href="/" className="flex items-center gap-2 no-underline">
+          <Image
+            src="/bee.jpg"
+            alt="BundoxxThe Bee — Brand Logo"
+            width={34}
+            height={34}
+            style={{
+              borderRadius: "50%",
+              objectFit: "cover",
+              border: "2px solid #00f5c8",
+              flexShrink: 0,
+            }}
+          />
           <span
             className="nav-brand-text"
             style={{
