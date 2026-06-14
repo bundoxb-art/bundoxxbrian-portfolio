@@ -150,7 +150,7 @@ export default function Payment() {
               copied={copied === "Account"}
             />
 
-            
+            <a
               href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(waMessage)}`}
               target="_blank"
               rel="noopener noreferrer"

@@ -135,7 +135,7 @@ export default function Services() {
             <strong style={{ color: "#eef0f6" }}>Not sure what you need?</strong>{" "}
             Book a free call and I&apos;ll help you scope the right package.
           </p>
-          
+          <a
             href="/book"
             style={{
               fontFamily: "'JetBrains Mono', monospace",
@@ -240,7 +240,7 @@ function ServiceCard({ service }: { service: (typeof services)[0] }) {
         ))}
       </div>
 
-      
+      <a
         href="/book"
         style={{
           textAlign: "center",
