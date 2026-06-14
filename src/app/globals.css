@@ -280,3 +280,10 @@ html, body {
   opacity: 1;
   transform: none;
 }
+/* ── PAYMENT GRID ── */
+@media (max-width: 1024px) {
+  .payment-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2.5rem !important;
+  }
+}
