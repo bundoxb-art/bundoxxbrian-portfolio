@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
 
 interface Review {
   rating: number;
@@ -12,17 +13,17 @@ const DEFAULT_REVIEWS: Review[] = [
   {
     rating: 5,
     comment: "Brian delivered our website faster than expected. Outstanding quality!",
-    date: "Dec 2024",
+    date: "Mar 2026",
   },
   {
     rating: 5,
     comment: "The mobile app works flawlessly on Android and iOS. Great communication.",
-    date: "Jan 2025",
+    date: "Apr 2026",
   },
   {
     rating: 5,
     comment: "Handled our data entry with accuracy and speed. Focused, Fast, Reliable!",
-    date: "Feb 2025",
+    date: "May 2026",
   },
 ];
 
@@ -33,14 +34,31 @@ export default function Feedback() {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  // Load from localStorage
-  useEffect(() => {
+  async function fetchReviews() {
     try {
-      const saved = localStorage.getItem("bb_reviews");
-      if (saved) setReviews(JSON.parse(saved));
-    } catch {}
+      const res = await fetch("/api/reviews");
+      const data = await res.json();
+      if (data.reviews && data.reviews.length > 0) {
+        setReviews(
+          data.reviews.map((r: { rating: number; comment: string; created_at: string }) => ({
+            rating: r.rating,
+            comment: r.comment,
+            date: format(new Date(r.created_at), "MMM yyyy"),
+          }))
+        );
+      } else {
+        setReviews(DEFAULT_REVIEWS);
+      }
+    } catch {
+      setReviews(DEFAULT_REVIEWS);
+    }
+  }
+
+  useEffect(() => {
+    fetchReviews();
   }, []);
 
   const avg =
@@ -48,22 +66,29 @@ export default function Feedback() {
       ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
       : "5.0";
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!rating) return alert("Please select a star rating!");
-    const now = new Date();
-    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    const newReview: Review = {
-      rating,
-      comment: comment.trim() || `${STAR_LABELS[rating]} experience working with Brian!`,
-      date: `${months[now.getMonth()]} ${now.getFullYear()}`,
-    };
-    const updated = [...reviews, newReview];
-    setReviews(updated);
-    localStorage.setItem("bb_reviews", JSON.stringify(updated));
-    setRating(0);
-    setComment("");
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rating,
+          comment: comment.trim() || `${STAR_LABELS[rating]} experience working with Brian!`,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      await fetchReviews();
+      setRating(0);
+      setComment("");
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 4000);
+    } catch {
+      alert("Couldn't submit right now. Please try again or message me on WhatsApp!");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -257,18 +282,15 @@ export default function Feedback() {
                   resize: "none",
                   transition: "border-color 0.2s",
                 }}
-                onFocus={(e) =>
-                  (e.target.style.borderColor = "#00f5c8")
-                }
-                onBlur={(e) =>
-                  (e.target.style.borderColor = "rgba(255,255,255,0.08)")
-                }
+                onFocus={(e) => (e.target.style.borderColor = "#00f5c8")}
+                onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
               />
             </div>
 
             {/* SUBMIT BUTTON */}
             <button
               onClick={handleSubmit}
+              disabled={submitting}
               style={{
                 width: "100%",
                 background: "linear-gradient(135deg, #00f5c8, #00c4a0)",
@@ -280,21 +302,23 @@ export default function Feedback() {
                 textTransform: "uppercase",
                 padding: "0.88rem",
                 borderRadius: "50px",
-                cursor: "pointer",
+                cursor: submitting ? "not-allowed" : "pointer",
                 fontWeight: "700",
+                opacity: submitting ? 0.6 : 1,
                 transition: "all 0.25s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow =
-                  "0 8px 24px rgba(0,245,200,0.3)";
+                if (!submitting) {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,245,200,0.3)";
+                }
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "translateY(0)";
                 e.currentTarget.style.boxShadow = "none";
               }}
             >
-              Submit Feedback 🐝
+              {submitting ? "Submitting... 🐝" : "Submit Feedback 🐝"}
             </button>
 
             {/* SUCCESS MSG */}
@@ -357,8 +381,7 @@ export default function Feedback() {
                     marginTop: "2px",
                   }}
                 >
-                  Based on {reviews.length} review
-                  {reviews.length !== 1 ? "s" : ""}
+                  Based on {reviews.length} review{reviews.length !== 1 ? "s" : ""}
                 </div>
               </div>
             </div>
@@ -374,7 +397,7 @@ export default function Feedback() {
                 paddingRight: "4px",
               }}
             >
-              {[...reviews].reverse().map((review, i) => (
+              {reviews.map((review, i) => (
                 <ReviewCard key={i} review={review} />
               ))}
             </div>
@@ -387,9 +410,7 @@ export default function Feedback() {
 
 // ── REVIEW CARD ──
 function ReviewCard({ review }: { review: Review }) {
-  const initials = ["A","B","C","D","E","F","G","H"][
-    Math.floor(Math.random() * 8)
-  ];
+  const initials = ["A","B","C","D","E","F","G","H"][Math.floor(Math.random() * 8)];
   const colors = [
     "linear-gradient(135deg,#00f5c8,#8b5cf6)",
     "linear-gradient(135deg,#8b5cf6,#f5c842)",
@@ -406,21 +427,10 @@ function ReviewCard({ review }: { review: Review }) {
         padding: "1.1rem",
         transition: "all 0.25s",
       }}
-      onMouseEnter={(e) =>
-        (e.currentTarget.style.borderColor = "rgba(0,245,200,0.2)")
-      }
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")
-      }
+      onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(0,245,200,0.2)")}
+      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "0.5rem",
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <div
             style={{
@@ -439,22 +449,12 @@ function ReviewCard({ review }: { review: Review }) {
           >
             {initials}
           </div>
-          <div>
-            <div
-              style={{ color: "#f5c842", fontSize: "0.78rem", letterSpacing: "1px" }}
-            >
-              {"★".repeat(review.rating)}
-              {"☆".repeat(5 - review.rating)}
-            </div>
+          <div style={{ color: "#f5c842", fontSize: "0.78rem", letterSpacing: "1px" }}>
+            {"★".repeat(review.rating)}
+            {"☆".repeat(5 - review.rating)}
           </div>
         </div>
-        <div
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: "0.6rem",
-            color: "#5a6278",
-          }}
-        >
+        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "#5a6278" }}>
           {review.date}
         </div>
       </div>

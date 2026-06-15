@@ -57,13 +57,31 @@ export default function BookingCalendar() {
     setStep("details");
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!name.trim()) return alert("Please enter your name");
     if (!selectedDate || !selectedTime) return;
 
     const dateStr = format(selectedDate, "EEEE, MMMM d, yyyy");
 
-    // Build WhatsApp message
+    // Save to database (best-effort — don't block the WhatsApp flow)
+    try {
+      await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          projectType,
+          bookingDate: format(selectedDate, "yyyy-MM-dd"),
+          bookingTime: selectedTime,
+          details,
+        }),
+      });
+    } catch {
+      // Silent fail — WhatsApp confirmation still goes through
+    }
+
     const lines = [
       `Hi Brian! I'd like to book a call 📅`,
       ``,

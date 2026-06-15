@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { supabaseAdmin } from "@/lib/supabase";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -10,6 +11,11 @@ export async function POST(req: NextRequest) {
     if (!email || !email.includes("@")) {
       return NextResponse.json({ error: "Valid email required" }, { status: 400 });
     }
+
+    // Save subscriber (skip if already subscribed)
+    await supabaseAdmin
+      .from("pf_subscribers")
+      .upsert({ email, source: "tech_guide" }, { onConflict: "email", ignoreDuplicates: true });
 
     // Notify Brian
     const waText = `🐝 New Dev Guide subscriber!\n\n✉️ ${email}`;

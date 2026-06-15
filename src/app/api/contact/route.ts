@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { supabaseAdmin } from "@/lib/supabase";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -13,6 +14,14 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // ── Save lead to database ──
+    await supabaseAdmin.from("pf_leads").insert({
+      name,
+      email: email || null,
+      subject: subject || null,
+      message,
+    });
 
     // ── 1. Notify Brian via WhatsApp (CallMeBot) ──
     const waText = `🐝 NEW LEAD!\n\n👤 ${name}\n✉️ ${email || "Not provided"}\n🏷️ ${subject || "General Inquiry"}\n\n💬 ${message}`;
