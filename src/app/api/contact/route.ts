@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     // Fire and forget — don't block response if this fails
     fetch(waUrl).catch((e) => console.error("CallMeBot error:", e));
 
-    // ── n8n AI Agent Live ──
+    // ── n8n AI Agent ──
     fetch("https://bundoxxbee-n8n.onrender.com/webhook/bundoxx-contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
