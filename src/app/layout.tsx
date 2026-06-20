@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import SocialDock from "@/components/SocialDock";
+import ChatWidget from '@/components/ChatWidget';
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -47,6 +48,7 @@ export default function RootLayout({
         {children}
         <BottomNav />
         <SocialDock />
+        <ChatWidget />
       </body>
     </html>
   );
