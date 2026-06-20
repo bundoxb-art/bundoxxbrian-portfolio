@@ -116,6 +116,7 @@ export default function BookingCalendar() {
 
   return (
     <div
+      id="projects"
       className="booking-wrap"
       style={{
         background: "linear-gradient(135deg, rgba(0,245,200,0.04), rgba(139,92,246,0.03))",
