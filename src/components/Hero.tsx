@@ -490,18 +490,6 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* CSS ANIMATIONS */}
-      <style jsx>{`
-        @keyframes frameGrad {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        @keyframes pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(0,245,200,0.5); }
-          50% { box-shadow: 0 0 0 8px rgba(0,245,200,0); }
-        }
-      `}</style>
     </section>
   );
 }

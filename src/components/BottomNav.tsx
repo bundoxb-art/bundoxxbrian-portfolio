@@ -134,19 +134,6 @@ export default function BottomNav() {
           HIRE ME
         </span>
 
-        {/* Animation style */}
-        <style jsx>{`
-          @keyframes hireFloat {
-            0%, 100% {
-              box-shadow: 0 0 0 4px rgba(0,245,200,0.15),
-                          0 8px 30px rgba(0,245,200,0.5);
-            }
-            50% {
-              box-shadow: 0 0 0 8px rgba(0,245,200,0.08),
-                          0 8px 32px rgba(0,245,200,0.7);
-            }
-          }
-        `}</style>
       </a>
     </>
   );
