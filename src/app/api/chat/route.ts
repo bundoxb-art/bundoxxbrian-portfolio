@@ -8,23 +8,22 @@ export async function POST(req: NextRequest) {
       return new NextResponse('Message is required', { status: 400 });
     }
 
-    const webhookUrl = process.env.N8N_CHAT_WEBHOOK_URL;
+    const n8nResponse = await fetch(
+      'https://bundoxxbee-n8n.onrender.com/webhook/bundoxx-chat',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      }
+    );
 
-    if (!webhookUrl) {
-      return new NextResponse('Webhook not configured', { status: 500 });
-    }
+    const data = await n8nResponse.json();
+    return NextResponse.json({ reply: data.reply || data.message || 'Thanks for reaching out! Brian will respond soon. 🐝' });
 
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message }),
+  } catch (err) {
+    console.error('Chat API error:', err);
+    return NextResponse.json({
+      reply: 'Having trouble connecting right now! WhatsApp Brian directly: wa.me/254768771559 🐝',
     });
-
-    const reply = await response.text();
-    return new NextResponse(reply, { status: 200 });
-
-  } catch (error) {
-    console.error('Chat error:', error);
-    return new NextResponse('Something went wrong', { status: 500 });
   }
 }

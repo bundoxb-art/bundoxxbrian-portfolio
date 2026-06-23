@@ -16,7 +16,7 @@ const QUICK_REPLIES = [
   '⚡ How fast do you deliver?',
 ];
 
-const WEBHOOK = 'https://bundoxxbee-n8n.onrender.com/webhook/bundoxx-chat';
+const WEBHOOK = '/api/chat';
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
