@@ -8,12 +8,12 @@ interface Message {
 }
 
 const QUICK_REPLIES = [
-  '💰 What are your prices?',
+  '💰 Bei yako ni ngapi?',
   '🛠️ What services do you offer?',
   '📱 Can you build mobile apps?',
   '📅 How do I book a call?',
-  '🌍 Do you work remotely?',
-  '⚡ How fast do you deliver?',
+  '🌍 Do you work with international clients?',
+  '⚡ Nikusaidie nini leo?',
 ];
 
 const WEBHOOK = '/api/chat';
@@ -24,7 +24,7 @@ export default function ChatWidget() {
     {
       role: 'assistant',
       content:
-        "Hey! 🐝 I'm BeeBot — Brian's AI assistant. I can answer questions about his services, pricing, tech stack and more. What would you like to know?",
+        "Hey! 🐝 I'm BeeBot — Brian's digital representative. I'm here to help you 24/7!\n\nYou can talk to me in English, Kiswahili, or Sheng — I understand them all! Ask me anything about Brian's services, pricing, projects, or tech stack. What's on your mind?",
     },
   ]);
   const [input, setInput] = useState('');
@@ -384,7 +384,7 @@ export default function ChatWidget() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && send(input)}
-              placeholder="Type a message..."
+              placeholder="Type in English, Kiswahili or Sheng..."
               style={{
                 flex: 1,
                 background: 'rgba(255,255,255,0.05)',
