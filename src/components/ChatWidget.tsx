@@ -41,34 +41,29 @@ export default function ChatWidget() {
     setShowQuick(false);
 
     const userMsg: Message = { role: 'user', content: text };
-    setMessages((prev) => [...prev, userMsg]);
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
     setInput('');
-    let wakeHint: ReturnType<typeof setTimeout> | null = null;
     setTyping(true);
 
-    // Show "waking up" hint after 8 seconds
-    wakeHint = setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          content:
-            "⏳ Still loading... Our AI might be waking up from sleep. This can take ~30 seconds the first time!",
-        },
-      ]);
-    }, 8000);
-
     try {
-      const res = await fetch(WEBHOOK, {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({
+          message: text,
+          // Send last 6 messages as history for context
+          history: updatedMessages.slice(-6).map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+        }),
       });
+
       const data = await res.json();
       const reply =
         data.reply ||
-        data.message ||
-        'Having trouble right now! WhatsApp Brian directly: wa.me/254768771559 🐝';
+        'Samahani! WhatsApp Brian: wa.me/254768771559 🐝';
 
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch {
@@ -77,11 +72,10 @@ export default function ChatWidget() {
         {
           role: 'assistant',
           content:
-            'Connection issue! Reach Brian on WhatsApp: wa.me/254768771559 🐝',
+            'Connection issue! WhatsApp Brian: wa.me/254768771559 🐝',
         },
       ]);
     } finally {
-      if (wakeHint) clearTimeout(wakeHint);
       setTyping(false);
     }
   }
