@@ -43,7 +43,20 @@ export default function ChatWidget() {
     const userMsg: Message = { role: 'user', content: text };
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
+    let wakeHint: ReturnType<typeof setTimeout> | null = null;
     setTyping(true);
+
+    // Show "waking up" hint after 8 seconds
+    wakeHint = setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content:
+            "⏳ Still loading... Our AI might be waking up from sleep. This can take ~30 seconds the first time!",
+        },
+      ]);
+    }, 8000);
 
     try {
       const res = await fetch(WEBHOOK, {
@@ -68,6 +81,7 @@ export default function ChatWidget() {
         },
       ]);
     } finally {
+      if (wakeHint) clearTimeout(wakeHint);
       setTyping(false);
     }
   }
