@@ -23,8 +23,7 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content:
-        "Hey! 🐝 I'm BeeBot — Brian's digital representative. I'm here to help you 24/7!\n\nYou can talk to me in English, Kiswahili, or Sheng — I understand them all! Ask me anything about Brian's services, pricing, projects, or tech stack. What's on your mind?",
+      content: "Sema! 🐝 I'm BeeBot — Brian's digital rep, available 24/7.\n\nNiambie — what do you need? I speak English, Kiswahili na Sheng. Ask me ANYTHING — pricing, projects, tech stack, or just vibe with me!",
     },
   ]);
   const [input, setInput] = useState('');
@@ -389,7 +388,7 @@ export default function ChatWidget() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && send(input)}
-              placeholder="Type in English, Kiswahili or Sheng..."
+              placeholder="Sema chochote... English au Kiswahili"
               style={{
                 flex: 1,
                 background: 'rgba(255,255,255,0.05)',
