@@ -40,39 +40,36 @@ export default function ChatWidget() {
     if (!text.trim() || typing) return;
     setShowQuick(false);
 
-    const userMsg: Message = { role: 'user', content: text };
-    const updatedMessages = [...messages, userMsg];
-    setMessages(updatedMessages);
-    setInput('');
+    const userMsg: Message = { role: "user", content: text };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
     setTyping(true);
 
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          // Send last 6 messages as history for context
-          history: updatedMessages.slice(-6).map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-        }),
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
       });
+
+      if (!res.ok) throw new Error("API failed");
 
       const data = await res.json();
       const reply =
         data.reply ||
-        'Samahani! WhatsApp Brian: wa.me/254768771559 🐝';
+        "Samahani! WhatsApp Brian: wa.me/254768771559 🐝";
 
-      setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: reply },
+      ]);
     } catch {
       setMessages((prev) => [
         ...prev,
         {
-          role: 'assistant',
+          role: "assistant",
           content:
-            'Connection issue! WhatsApp Brian: wa.me/254768771559 🐝',
+            "Samahani! 🐝 Connection issue. WhatsApp Brian: wa.me/254768771559",
         },
       ]);
     } finally {

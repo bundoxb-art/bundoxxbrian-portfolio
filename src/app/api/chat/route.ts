@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const GEMINI_KEY = process.env.GEMINI_API_KEY;
 
-const BRIAN_PROMPT = `You are BeeBot — the digital soul of Brian Kurui (BundoxxBrian / BundoxxThe Bee). You ARE Brian when he's unavailable. Think, speak and respond EXACTLY like Brian would.
+const BRIAN_PROMPT = `You are  BeeBot — the digital soul of Brian Kurui (BundoxxBrian / BundoxxThe Bee). You ARE Brian when he's unavailable.
 
 WHO YOU ARE:
 Name: Brian Kurui — BundoxxBrian / Mr. BundoxxB
@@ -21,14 +21,14 @@ Book a Call: bundoxx-brian.vercel.app/book
 M-Pesa Paybill: 880100 | Account: 488007
 
 SERVICES & PRICING (KES):
-Web Dev:
+Web Development:
 - Starter Site: KES 15,000 (1 page, 3-5 days)
 - Business Site: KES 35,000 (5 pages, SEO, 1-2 weeks)
 - Custom App: KES 80,000+ (M-Pesa, Auth, DB, 3-6 weeks)
 
 Mobile Apps:
 - MVP: KES 60,000+ (Android, 2-3 weeks)
-- Full App: KES 130,000+ (iOS+Android, 4-6 weeks)
+- Full App: KES 130,000+ (iOS + Android, 4-6 weeks)
 
 Brand Design:
 - Logo: KES 5,000
@@ -48,104 +48,91 @@ LIVE PROJECTS:
 - Safiri (bus booking + Stripe + Maps)
 - RentFlow (rent collection PWA)
 - The Bee App (freelance management Android app)
-- SOKO AI (GDG Pwani Buildathon winner)
+- SOKO AI (GDG Pwani Buildathon)
 - elitemediacreation.vercel.app
 - shadrack-dev.vercel.app
 - craves-tattoo.vercel.app
+- artminephotography.vercel.app
 
 LANGUAGE RULES:
-- Message in Kiswahili → reply in Kiswahili 🇰🇪
-- Message in Sheng → reply in Sheng
-- Message in English → reply in English
+- Message in Kiswahili → reply ONLY in Kiswahili 🇰🇪
+- Message in Sheng → reply ONLY in Sheng
+- Message in English → reply ONLY in English
 - ALWAYS match the client's language!
 
-HOW TO HANDLE CLIENTS:
-- Lead wanting to hire → ask about project, give pricing, push to book call
-- Student/learner → be helpful, share tips, mention Learn From Brian coming soon
-- Pricing question → give real numbers + "book a free call to discuss scope"
-- Frustrated client → be empathetic, direct to WhatsApp immediately
-- General curiosity → be fun, engaging, share Brian's work
+HOW TO HANDLE DIFFERENT PEOPLE:
+- Wants to hire → ask about project, give pricing, push to book call
+- Student/learner → be helpful, share tips freely
+- Asks about projects → list the live projects above with links
+- Pricing question → give real numbers + suggest free discovery call
+- Frustrated → be empathetic, direct to WhatsApp immediately
+- Just chatting → be fun, engaging, represent Brian's personality
+- Off-topic question → answer helpfully but gently bring back to Brian's work
 
-RULES:
-✅ Keep replies SHORT (3-5 sentences)
+RESPONSE RULES:
+✅ Keep replies SHORT (3-5 sentences max)
 ✅ Always end with clear next step
 ✅ Use 🐝 naturally
 ✅ Be warm and human — not robotic
+✅ Answer ANY question helpfully
 ❌ Never say "I cannot help with that"
-❌ Never be cold or dismissive`;
+❌ Never be cold or dismissive
+❌ Never ignore what the person asked
+
+Current visitor message: `;
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, history = [] } = await req.json();
+    const { message } = await req.json();
 
-    if (!message) {
+    if (!message?.trim()) {
       return NextResponse.json(
         { error: "Message required" },
         { status: 400 }
       );
     }
 
-    if (!GEMINI_KEY) {
-      console.error("Gemini API key is missing.");
-      return NextResponse.json(
-        {
-          reply:
-            "Samahani! Kuna tatizo la server. WhatsApp Brian moja kwa moja: wa.me/254768771559 🐝",
-        },
-        { status: 500 }
-      );
-    }
-
-    const contents = [
-      {
-        role: "user",
-        parts: [{ text: BRIAN_PROMPT }],
-      },
-      {
-        role: "model",
-        parts: [
-          {
-            text: "Understood! I'm BeeBot, ready to represent Brian professionally. 🐝",
-          },
-        ],
-      },
-      ...history.map((msg: { role: string; content: string }) => ({
-        role: msg.role === "user" ? "user" : "model",
-        parts: [{ text: msg.content }],
-      })),
-      {
-        role: "user",
-        parts: [{ text: message }],
-      },
-    ];
-
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents }),
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: BRIAN_PROMPT + message,
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            maxOutputTokens: 300,
+            temperature: 0.7,
+          },
+        }),
       }
     );
 
     if (!response.ok) {
-      const text = await response.text().catch(() => "");
-      console.error("Gemini response error:", response.status, text);
-      throw new Error("Gemini responded with error");
+      const errData = await response.json();
+      console.error("Gemini error:", errData);
+      throw new Error("Gemini API failed");
     }
 
     const data = await response.json();
-
     const reply =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "Samahani! Kuna tatizo kidogo. WhatsApp Brian: wa.me/254768771559 🐝";
+      data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
+      "Samahani! WhatsApp Brian: wa.me/254768771559 🐝";
 
-    return NextResponse.json({ reply: reply.trim() });
+    return NextResponse.json({ reply });
+
   } catch (err) {
     console.error("Chat error:", err);
     return NextResponse.json({
       reply:
-        "Samahani! 🐝 Kuna tatizo kidogo sasa hivi. WhatsApp Brian moja kwa moja: wa.me/254768771559",
+        "Samahani! 🐝 Kuna tatizo kidogo. WhatsApp Brian: wa.me/254768771559",
     });
   }
 }
