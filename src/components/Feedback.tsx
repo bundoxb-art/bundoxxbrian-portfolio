@@ -4,56 +4,64 @@ import { useState, useEffect } from "react";
 import { format } from "date-fns";
 
 interface Review {
+  id: string;
   rating: number;
-  comment: string;
-  date: string;
+  comment: string | null;
+  reviewer_name: string;
+  project_type: string;
+  created_at: string;
 }
 
-const DEFAULT_REVIEWS: Review[] = [
-  {
-    rating: 5,
-    comment: "Brian delivered our website faster than expected. Outstanding quality!",
-    date: "Mar 2026",
-  },
-  {
-    rating: 5,
-    comment: "The mobile app works flawlessly on Android and iOS. Great communication.",
-    date: "Apr 2026",
-  },
-  {
-    rating: 5,
-    comment: "Handled our data entry with accuracy and speed. Focused, Fast, Reliable!",
-    date: "May 2026",
-  },
+const PROJECT_TYPES = [
+  "Web Development",
+  "Mobile App",
+  "Brand / Logo Design",
+  "Virtual Assistant",
+  "Data Entry",
+  "Other",
 ];
 
-const STAR_LABELS = ["", "Poor 😕", "Fair 🙂", "Good 👍", "Very Good 😊", "Excellent! 🤩"];
+const STAR_LABELS = [
+  "",
+  "Poor 😕",
+  "Fair 🙂",
+  "Good 👍",
+  "Very Good 😊",
+  "Excellent! 🤩",
+];
+
+const AVATAR_COLORS = [
+  "linear-gradient(135deg,#00f5c8,#8b5cf6)",
+  "linear-gradient(135deg,#8b5cf6,#f5c842)",
+  "linear-gradient(135deg,#f5c842,#00f5c8)",
+  "linear-gradient(135deg,#00f5c8,#f5c842)",
+  "linear-gradient(135deg,#8b5cf6,#00f5c8)",
+];
 
 export default function Feedback() {
-  const [reviews, setReviews] = useState<Review[]>(DEFAULT_REVIEWS);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Form state
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [projectType, setProjectType] = useState(PROJECT_TYPES[0]);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
 
   async function fetchReviews() {
     try {
       const res = await fetch("/api/reviews");
       const data = await res.json();
-      if (data.reviews && data.reviews.length > 0) {
-        setReviews(
-          data.reviews.map((r: { rating: number; comment: string; created_at: string }) => ({
-            rating: r.rating,
-            comment: r.comment,
-            date: format(new Date(r.created_at), "MMM yyyy"),
-          }))
-        );
-      } else {
-        setReviews(DEFAULT_REVIEWS);
-      }
+      if (data.reviews) setReviews(data.reviews);
     } catch {
-      setReviews(DEFAULT_REVIEWS);
+      console.error("Failed to fetch reviews");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -63,29 +71,47 @@ export default function Feedback() {
 
   const avg =
     reviews.length > 0
-      ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+      ? (
+          reviews.reduce((s, r) => s + r.rating, 0) /
+          reviews.length
+        ).toFixed(1)
       : "5.0";
 
   async function handleSubmit() {
-    if (!rating) return alert("Please select a star rating!");
+    setError("");
+    if (!name.trim()) {
+      setError("Please enter your name");
+      return;
+    }
+    if (!rating) {
+      setError("Please select a star rating");
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name,
+          email,
+          projectType,
           rating,
-          comment: comment.trim() || `${STAR_LABELS[rating]} experience working with Brian!`,
+          comment,
         }),
       });
-      if (!res.ok) throw new Error();
-      await fetchReviews();
+
+      if (!res.ok) throw new Error("Failed");
+
+      setSubmitted(true);
+      setName("");
+      setEmail("");
       setRating(0);
       setComment("");
-      setSubmitted(true);
-      setTimeout(() => setSubmitted(false), 4000);
+      setProjectType(PROJECT_TYPES[0]);
     } catch {
-      alert("Couldn't submit right now. Please try again or message me on WhatsApp!");
+      setError("Something went wrong. Please try again!");
     } finally {
       setSubmitting(false);
     }
@@ -116,7 +142,14 @@ export default function Feedback() {
             marginBottom: "0.5rem",
           }}
         >
-          <span style={{ width: "20px", height: "1px", background: "#00f5c8", display: "inline-block" }} />
+          <span
+            style={{
+              width: "20px",
+              height: "1px",
+              background: "#00f5c8",
+              display: "inline-block",
+            }}
+          />
           Client Reviews
         </div>
 
@@ -130,7 +163,7 @@ export default function Feedback() {
             color: "#eef0f6",
           }}
         >
-          Leave Your Feedback
+          What Clients Say
         </h2>
 
         <p
@@ -142,7 +175,8 @@ export default function Feedback() {
             maxWidth: "500px",
           }}
         >
-          Worked with Brian? Rate your experience — it takes 30 seconds!
+          Worked with BundoxxB? Leave a review — it takes 60 seconds
+          and helps others know what to expect! 🐝
         </p>
 
         <div
@@ -154,208 +188,294 @@ export default function Feedback() {
             alignItems: "start",
           }}
         >
-
           {/* LEFT — SUBMIT FORM */}
           <div
             style={{
-              background: "linear-gradient(135deg, rgba(0,245,200,0.04), rgba(139,92,246,0.03))",
+              background:
+                "linear-gradient(135deg, rgba(0,245,200,0.04), rgba(139,92,246,0.03))",
               border: "1px solid rgba(0,245,200,0.2)",
               borderRadius: "20px",
               padding: "2rem",
-              position: "relative",
-              overflow: "hidden",
             }}
           >
-            <h3
-              style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: "1.8rem",
-                letterSpacing: "0.06em",
-                marginBottom: "0.3rem",
-                color: "#eef0f6",
-              }}
-            >
-              Rate My Work ⭐
-            </h3>
-            <p
-              style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: "0.7rem",
-                color: "#5a6278",
-                marginBottom: "1.5rem",
-                lineHeight: "1.6",
-              }}
-            >
-              Tap the stars to rate, then leave a comment.
-            </p>
-
-            {/* STARS */}
-            <div
-              className="star-pick"
-              style={{
-                display: "flex",
-                gap: "0.4rem",
-                justifyContent: "center",
-                marginBottom: "0.5rem",
-              }}
-            >
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onClick={() => setRating(star)}
-                  onMouseEnter={() => setHoverRating(star)}
-                  onMouseLeave={() => setHoverRating(0)}
+            {submitted ? (
+              /* SUCCESS STATE */
+              <div style={{ textAlign: "center", padding: "2rem 0" }}>
+                <div
+                  style={{ fontSize: "3rem", marginBottom: "1rem" }}
+                >
+                  🎉
+                </div>
+                <h3
                   style={{
-                    fontSize: "2.8rem",
-                    cursor: "pointer",
-                    background: "none",
-                    border: "none",
-                    lineHeight: "1",
-                    padding: "0.2rem",
-                    minWidth: "44px",
-                    minHeight: "44px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    transition: "transform 0.2s",
-                    transform:
-                      star <= (hoverRating || rating)
-                        ? "scale(1.2)"
-                        : "scale(1)",
-                    color:
-                      star <= (hoverRating || rating)
-                        ? "#f5c842"
-                        : "rgba(255,255,255,0.15)",
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: "1.6rem",
+                    color: "#eef0f6",
+                    marginBottom: "0.6rem",
                   }}
                 >
-                  ★
+                  Thank You!
+                </h3>
+                <p
+                  style={{
+                    fontSize: "0.85rem",
+                    color: "#9ba3bb",
+                    lineHeight: "1.7",
+                    marginBottom: "1.2rem",
+                  }}
+                >
+                  Your review has been submitted! BundoxxB will approve
+                  it shortly and it will appear here. 🐝
+                </p>
+                <button
+                  onClick={() => setSubmitted(false)}
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: "0.7rem",
+                    color: "#00f5c8",
+                    background: "transparent",
+                    border: "1px solid rgba(0,245,200,0.2)",
+                    padding: "0.5rem 1.2rem",
+                    borderRadius: "50px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Leave Another Review
                 </button>
-              ))}
-            </div>
-
-            {/* STAR LABEL */}
-            <p
-              style={{
-                textAlign: "center",
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: "0.72rem",
-                color: hoverRating || rating ? "#f5c842" : "#5a6278",
-                letterSpacing: "0.1em",
-                marginBottom: "1.2rem",
-                minHeight: "1.2rem",
-                transition: "all 0.2s",
-              }}
-            >
-              {STAR_LABELS[hoverRating || rating] || "Tap a star to rate"}
-            </p>
-
-            {/* COMMENT */}
-            <div style={{ marginBottom: "0.9rem" }}>
-              <label
-                style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: "0.63rem",
-                  color: "#5a6278",
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  display: "block",
-                  marginBottom: "0.4rem",
-                }}
-              >
-                Your Comment (optional)
-              </label>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Tell others about your experience working with Brian…"
-                rows={3}
-                style={{
-                  width: "100%",
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  color: "#eef0f6",
-                  fontFamily: "'Outfit', sans-serif",
-                  fontSize: "0.87rem",
-                  padding: "0.72rem 0.9rem",
-                  borderRadius: "10px",
-                  outline: "none",
-                  resize: "none",
-                  transition: "border-color 0.2s",
-                }}
-                onFocus={(e) => (e.target.style.borderColor = "#00f5c8")}
-                onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
-              />
-            </div>
-
-            {/* SUBMIT BUTTON */}
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              style={{
-                width: "100%",
-                background: "linear-gradient(135deg, #00f5c8, #00c4a0)",
-                color: "#05070d",
-                border: "none",
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: "0.78rem",
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                padding: "0.88rem",
-                borderRadius: "50px",
-                cursor: submitting ? "not-allowed" : "pointer",
-                fontWeight: "700",
-                opacity: submitting ? 0.6 : 1,
-                transition: "all 0.25s",
-              }}
-              onMouseEnter={(e) => {
-                if (!submitting) {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,245,200,0.3)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
-            >
-              {submitting ? "Submitting... 🐝" : "Submit Feedback 🐝"}
-            </button>
-
-            {/* SUCCESS MSG */}
-            {submitted && (
-              <div
-                style={{
-                  marginTop: "0.8rem",
-                  padding: "0.8rem 1rem",
-                  background: "rgba(0,245,200,0.08)",
-                  border: "1px solid rgba(0,245,200,0.2)",
-                  borderRadius: "10px",
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: "0.75rem",
-                  color: "#00f5c8",
-                  textAlign: "center",
-                }}
-              >
-                🎉 Thank you for your feedback!
               </div>
+            ) : (
+              <>
+                <h3
+                  style={{
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: "1.6rem",
+                    letterSpacing: "0.06em",
+                    marginBottom: "1.2rem",
+                    color: "#eef0f6",
+                  }}
+                >
+                  Rate My Work ⭐
+                </h3>
+
+                {/* NAME + EMAIL */}
+                <div
+                  className="form-row-2"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "0.8rem",
+                    marginBottom: "0.8rem",
+                  }}
+                >
+                  <div>
+                    <label style={labelStyle}>
+                      Your Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Jane Smith"
+                      style={inputStyle}
+                      onFocus={(e) =>
+                        (e.target.style.borderColor = "#00f5c8")
+                      }
+                      onBlur={(e) =>
+                        (e.target.style.borderColor =
+                          "rgba(255,255,255,0.08)")
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>
+                      Email (optional)
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="jane@email.com"
+                      style={inputStyle}
+                      onFocus={(e) =>
+                        (e.target.style.borderColor = "#00f5c8")
+                      }
+                      onBlur={(e) =>
+                        (e.target.style.borderColor =
+                          "rgba(255,255,255,0.08)")
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* PROJECT TYPE */}
+                <div style={{ marginBottom: "0.8rem" }}>
+                  <label style={labelStyle}>
+                    Project Type *
+                  </label>
+                  <select
+                    value={projectType}
+                    onChange={(e) => setProjectType(e.target.value)}
+                    style={{ ...inputStyle, cursor: "pointer" }}
+                  >
+                    {PROJECT_TYPES.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* STARS */}
+                <div style={{ marginBottom: "0.5rem" }}>
+                  <label style={labelStyle}>
+                    Rating *
+                  </label>
+                  <div
+                    className="star-pick"
+                    style={{
+                      display: "flex",
+                      gap: "0.2rem",
+                      marginTop: "0.3rem",
+                    }}
+                  >
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => setRating(star)}
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        style={{
+                          fontSize: "2.2rem",
+                          cursor: "pointer",
+                          background: "none",
+                          border: "none",
+                          padding: "0.1rem",
+                          minWidth: "40px",
+                          minHeight: "40px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "transform 0.2s",
+                          transform:
+                            star <= (hoverRating || rating)
+                              ? "scale(1.2)"
+                              : "scale(1)",
+                          color:
+                            star <= (hoverRating || rating)
+                              ? "#f5c842"
+                              : "rgba(255,255,255,0.15)",
+                        }}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                  <p
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: "0.68rem",
+                      color:
+                        hoverRating || rating
+                          ? "#f5c842"
+                          : "#5a6278",
+                      minHeight: "1rem",
+                      transition: "color 0.2s",
+                      marginTop: "0.2rem",
+                    }}
+                  >
+                    {STAR_LABELS[hoverRating || rating] ||
+                      "Tap a star to rate"}
+                  </p>
+                </div>
+
+                {/* COMMENT */}
+                <div style={{ marginBottom: "0.9rem" }}>
+                  <label style={labelStyle}>
+                    Your Comment (optional)
+                  </label>
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Tell others about your experience working with Brian…"
+                    rows={3}
+                    style={{
+                      ...inputStyle,
+                      resize: "none",
+                      minHeight: "80px",
+                    }}
+                    onFocus={(e) =>
+                      (e.target.style.borderColor = "#00f5c8")
+                    }
+                    onBlur={(e) =>
+                      (e.target.style.borderColor =
+                        "rgba(255,255,255,0.08)")
+                    }
+                  />
+                </div>
+
+                {/* ERROR */}
+                {error && (
+                  <p
+                    style={{
+                      color: "#f5c842",
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: "0.7rem",
+                      marginBottom: "0.7rem",
+                    }}
+                  >
+                    ⚠️ {error}
+                  </p>
+                )}
+
+                {/* SUBMIT */}
+                <button
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  style={{
+                    width: "100%",
+                    background:
+                      "linear-gradient(135deg, #00f5c8, #00c4a0)",
+                    color: "#05070d",
+                    border: "none",
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: "0.78rem",
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    padding: "0.88rem",
+                    borderRadius: "50px",
+                    cursor: submitting ? "not-allowed" : "pointer",
+                    fontWeight: "700",
+                    opacity: submitting ? 0.6 : 1,
+                    transition: "all 0.25s",
+                  }}
+                >
+                  {submitting
+                    ? "Submitting... 🐝"
+                    : "Submit Review 🐝"}
+                </button>
+              </>
             )}
           </div>
 
           {/* RIGHT — REVIEWS LIST */}
           <div>
-            {/* AVG RATING */}
+            {/* AVERAGE RATING */}
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "0.8rem",
+                gap: "1rem",
                 marginBottom: "1.5rem",
+                padding: "1.2rem",
+                background: "#0d1220",
+                borderRadius: "12px",
+                border: "1px solid rgba(255,255,255,0.08)",
               }}
             >
               <span
                 style={{
                   fontFamily: "'Bebas Neue', sans-serif",
-                  fontSize: "3rem",
+                  fontSize: "3.5rem",
                   color: "#f5c842",
                   lineHeight: "1",
                 }}
@@ -366,7 +486,7 @@ export default function Feedback() {
                 <div
                   style={{
                     color: "#f5c842",
-                    fontSize: "1.1rem",
+                    fontSize: "1.2rem",
                     letterSpacing: "2px",
                   }}
                 >
@@ -378,45 +498,114 @@ export default function Feedback() {
                     fontFamily: "'JetBrains Mono', monospace",
                     fontSize: "0.65rem",
                     color: "#5a6278",
-                    marginTop: "2px",
+                    marginTop: "4px",
                   }}
                 >
-                  Based on {reviews.length} review{reviews.length !== 1 ? "s" : ""}
+                  {reviews.length} verified review
+                  {reviews.length !== 1 ? "s" : ""}
                 </div>
               </div>
             </div>
 
+            {/* LOADING */}
+            {loading && (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "1rem",
+                }}
+              >
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    style={{
+                      height: "100px",
+                      background: "#0d1220",
+                      borderRadius: "14px",
+                      opacity: 0.5,
+                      animation: "pulse 1.5s infinite",
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* EMPTY STATE */}
+            {!loading && reviews.length === 0 && (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "3rem 2rem",
+                  background: "#0d1220",
+                  borderRadius: "14px",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
+                <div style={{ fontSize: "2rem", marginBottom: "0.8rem" }}>
+                  🐝
+                </div>
+                <p
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: "0.75rem",
+                    color: "#5a6278",
+                  }}
+                >
+                  Be the first to leave a review!
+                </p>
+              </div>
+            )}
+
             {/* REVIEW CARDS */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "1rem",
-                maxHeight: "480px",
-                overflowY: "auto",
-                paddingRight: "4px",
-              }}
-            >
-              {reviews.map((review, i) => (
-                <ReviewCard key={i} review={review} />
-              ))}
-            </div>
+            {!loading && reviews.length > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "1rem",
+                  maxHeight: "500px",
+                  overflowY: "auto",
+                  paddingRight: "4px",
+                }}
+              >
+                {reviews.map((review, i) => (
+                  <ReviewCard
+                    key={review.id}
+                    review={review}
+                    colorIndex={i % AVATAR_COLORS.length}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 0.8; }
+        }
+      `}</style>
     </section>
   );
 }
 
 // ── REVIEW CARD ──
-function ReviewCard({ review }: { review: Review }) {
-  const initials = ["A","B","C","D","E","F","G","H"][Math.floor(Math.random() * 8)];
-  const colors = [
-    "linear-gradient(135deg,#00f5c8,#8b5cf6)",
-    "linear-gradient(135deg,#8b5cf6,#f5c842)",
-    "linear-gradient(135deg,#f5c842,#00f5c8)",
-  ];
-  const color = colors[Math.floor(Math.random() * colors.length)];
+function ReviewCard({
+  review,
+  colorIndex,
+}: {
+  review: Review;
+  colorIndex: number;
+}) {
+  const initials = review.reviewer_name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <div
@@ -424,43 +613,140 @@ function ReviewCard({ review }: { review: Review }) {
         background: "#0d1220",
         border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: "14px",
-        padding: "1.1rem",
+        padding: "1.2rem",
         transition: "all 0.25s",
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(0,245,200,0.2)")}
-      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.borderColor =
+          "rgba(0,245,200,0.2)")
+      }
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.borderColor =
+          "rgba(255,255,255,0.08)")
+      }
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          marginBottom: "0.7rem",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.7rem",
+          }}
+        >
+          {/* AVATAR */}
           <div
             style={{
-              width: "32px",
-              height: "32px",
+              width: "40px",
+              height: "40px",
               borderRadius: "50%",
-              background: color,
+              background: AVATAR_COLORS[colorIndex],
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontWeight: "700",
-              fontSize: "0.78rem",
+              fontSize: "0.8rem",
               color: "#05070d",
               flexShrink: 0,
             }}
           >
             {initials}
           </div>
-          <div style={{ color: "#f5c842", fontSize: "0.78rem", letterSpacing: "1px" }}>
-            {"★".repeat(review.rating)}
-            {"☆".repeat(5 - review.rating)}
+
+          <div>
+            <div
+              style={{
+                fontFamily: "'Outfit', sans-serif",
+                fontSize: "0.88rem",
+                fontWeight: "600",
+                color: "#eef0f6",
+                lineHeight: "1.2",
+              }}
+            >
+              {review.reviewer_name}
+            </div>
+            <div
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "0.6rem",
+                color: "#5a6278",
+                marginTop: "2px",
+              }}
+            >
+              {review.project_type}
+            </div>
           </div>
         </div>
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "#5a6278" }}>
-          {review.date}
+
+        {/* DATE */}
+        <div
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "0.58rem",
+            color: "#5a6278",
+            flexShrink: 0,
+          }}
+        >
+          {format(new Date(review.created_at), "MMM yyyy")}
         </div>
       </div>
-      <p style={{ fontSize: "0.85rem", lineHeight: "1.7", color: "#9ba3bb" }}>
-        {review.comment}
-      </p>
+
+      {/* STARS */}
+      <div
+        style={{
+          color: "#f5c842",
+          fontSize: "0.85rem",
+          letterSpacing: "2px",
+          marginBottom: "0.5rem",
+        }}
+      >
+        {"★".repeat(review.rating)}
+        {"☆".repeat(5 - review.rating)}
+      </div>
+
+      {/* COMMENT */}
+      {review.comment && (
+        <p
+          style={{
+            fontSize: "0.83rem",
+            lineHeight: "1.7",
+            color: "#9ba3bb",
+          }}
+        >
+          &ldquo;{review.comment}&rdquo;
+        </p>
+      )}
     </div>
   );
 }
+
+// ── SHARED STYLES ──
+const labelStyle: React.CSSProperties = {
+  fontFamily: "'JetBrains Mono', monospace",
+  fontSize: "0.63rem",
+  color: "#5a6278",
+  letterSpacing: "0.1em",
+  textTransform: "uppercase",
+  display: "block",
+  marginBottom: "0.4rem",
+};
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  background: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  color: "#eef0f6",
+  fontFamily: "'Outfit', sans-serif",
+  fontSize: "0.85rem",
+  padding: "0.7rem 0.9rem",
+  borderRadius: "10px",
+  outline: "none",
+  minHeight: "44px",
+  transition: "border-color 0.2s",
+};

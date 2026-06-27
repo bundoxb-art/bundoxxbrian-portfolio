@@ -405,6 +405,38 @@ export default function About() {
               💼 Let&apos;s Work Together
             </a>
 
+            {/* NEW — Book a Call CTA */}
+            <a
+              href="/book"
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "0.78rem",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: "#f5c842",
+                background: "rgba(245,200,66,0.08)",
+                padding: "0.85rem 1.8rem",
+                borderRadius: "50px",
+                textDecoration: "none",
+                fontWeight: "600",
+                border: "1px solid rgba(245,200,66,0.25)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                transition: "all 0.25s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(245,200,66,0.15)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(245,200,66,0.08)";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              📅 Book a Free Call
+            </a>
+
             <a
               href="https://github.com/bundoxb-art"
               target="_blank"
