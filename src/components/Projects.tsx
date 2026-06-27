@@ -1,533 +1,628 @@
 "use client";
 
-import { useState } from "react";
-import { format, addDays, isSameDay, startOfDay } from "date-fns";
+import { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
 
-// ── CONFIG ──
-const TIME_SLOTS = [
-  "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
-  "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM",
-];
+// ── Supabase client (read-only, safe for client side) ──
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const PROJECT_TYPES = [
-  "Web Development",
-  "Mobile App",
-  "Brand / Logo Design",
-  "Data Entry / VA",
-  "Consultation",
-  "Other",
-];
+const supabase =
+  supabaseUrl && supabaseAnonKey
+    ? createClient(supabaseUrl, supabaseAnonKey)
+    : null;
 
-const WHATSAPP = "254768771559";
-const DAYS_AHEAD = 14;
+interface Project {
+  id: string;
+  name: string;
+  description: string;
+  problem: string | null;
+  outcome: string | null;
+  role: string | null;
+  category: string;
+  tech_stack: string[];
+  live_url: string | null;
+  image_url: string | null;
+  featured: boolean;
+  sort_order: number;
+}
 
-type Step = "date" | "time" | "details" | "success";
+const FILTERS = ["All", "Business", "Media", "Photography", "Dev", "Design"];
 
-export default function BookingCalendar() {
-  const [step, setStep] = useState<Step>("date");
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [projectType, setProjectType] = useState(PROJECT_TYPES[0]);
-  const [details, setDetails] = useState("");
+export default function Projects() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [active, setActive] = useState("All");
 
-  const today = startOfDay(new Date());
-  const days: Date[] = [];
-  let d = today;
-  while (days.length < DAYS_AHEAD) {
-    if (d.getDay() !== 0) days.push(d);
-    d = addDays(d, 1);
-  }
+  useEffect(() => {
+    async function fetchProjects() {
+      if (!supabase) {
+        setError(true);
+        setLoading(false);
+        return;
+      }
 
-  function handleDateSelect(date: Date) {
-    setSelectedDate(date);
-    setStep("time");
-  }
+      try {
+        const { data, error } = await supabase
+          .from("pf_projects")
+          .select("*")
+          .order("sort_order", { ascending: true });
 
-  function handleTimeSelect(time: string) {
-    setSelectedTime(time);
-    setStep("details");
-  }
+        if (error) throw error;
+        setProjects(data || []);
+      } catch (err) {
+        console.error("Failed to fetch projects:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-  function handleSubmit() {
-    if (!name.trim()) return alert("Please enter your name");
-    if (!selectedDate || !selectedTime) return;
+    fetchProjects();
+  }, []);
 
-    const dateStr = format(selectedDate, "EEEE, MMMM d, yyyy");
-
-    const lines = [
-      `Hi Brian! I'd like to book a call 📅`,
-      ``,
-      `👤 Name: ${name}`,
-      email ? `✉️ Email: ${email}` : null,
-      phone ? `📱 Phone: ${phone}` : null,
-      `🏷️ Project: ${projectType}`,
-      `📅 Date: ${dateStr}`,
-      `🕐 Time: ${selectedTime}`,
-      details ? `💬 Details: ${details}` : null,
-    ].filter(Boolean);
-
-    const message = lines.join("\n");
-    const url = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(message)}`;
-
-    window.open(url, "_blank");
-    setStep("success");
-  }
-
-  function reset() {
-    setStep("date");
-    setSelectedDate(null);
-    setSelectedTime(null);
-    setName("");
-    setEmail("");
-    setPhone("");
-    setProjectType(PROJECT_TYPES[0]);
-    setDetails("");
-  }
-
-  function getCalendarLink() {
-    if (!selectedDate || !selectedTime) return "#";
-
-    const [time, period] = selectedTime.split(" ");
-    const [hours, minutes] = time.split(":").map(Number);
-    const normalizedHours = period === "PM" && hours !== 12 ? hours + 12 : period === "AM" && hours === 12 ? 0 : hours;
-
-    const start = new Date(selectedDate);
-    start.setHours(normalizedHours, minutes, 0, 0);
-    start.setHours(hours, minutes, 0, 0);
-    const end = new Date(start);
-    end.setHours(end.getHours() + 1);
-
-    const toUTC = (date: Date) => {
-      const utc = new Date(date.getTime() - 3 * 60 * 60 * 1000);
-      return format(utc, "yyyyMMdd'T'HHmmss'Z'");
-    };
-
-    const text = encodeURIComponent(`Call with Brian — ${projectType}`);
-    const datesParam = `${toUTC(start)}/${toUTC(end)}`;
-    const detailsParam = encodeURIComponent(
-      `Project: ${projectType}\nClient: ${name}\n${details}`
-    );
-
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${datesParam}&details=${detailsParam}`;
-  }
+  const filtered =
+    active === "All"
+      ? projects
+      : projects.filter((p) => p.category === active);
 
   return (
-    <div
+    <section
       id="projects"
-      className="booking-wrap"
+      className="section-pad"
       style={{
-        background: "linear-gradient(135deg, rgba(0,245,200,0.04), rgba(139,92,246,0.03))",
-        border: "1px solid rgba(0,245,200,0.2)",
-        borderRadius: "20px",
-        padding: "2rem",
-        maxWidth: "560px",
-        margin: "0 auto",
+        padding: "5.5rem 2rem",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
       }}
     >
-      {/* PROGRESS STEPS */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "2rem" }}>
-        {["date", "time", "details"].map((s, i) => {
-          const isDone =
-            (s === "date" && (step === "time" || step === "details" || step === "success")) ||
-            (s === "time" && (step === "details" || step === "success")) ||
-            (s === "details" && step === "success");
-          const isCurrent = step === s;
-          return (
-            <div key={s} style={{ display: "flex", alignItems: "center", gap: "0.5rem", flex: 1 }}>
-              <div
-                style={{
-                  width: "28px",
-                  height: "28px",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: "0.7rem",
-                  fontWeight: "700",
-                  background: isCurrent || isDone ? "#00f5c8" : "rgba(255,255,255,0.08)",
-                  color: isCurrent || isDone ? "#05070d" : "#5a6278",
-                  flexShrink: 0,
-                }}
-              >
-                {i + 1}
-              </div>
-              {i < 2 && (
-                <div
-                  style={{
-                    flex: 1,
-                    height: "2px",
-                    background: isDone ? "#00f5c8" : "rgba(255,255,255,0.08)",
-                  }}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
+      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
 
-      {/* ── STEP 1: DATE ── */}
-      {step === "date" && (
-        <>
-          <h3
+        {/* HEADER */}
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.6rem",
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "0.66rem",
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: "#00f5c8",
+            marginBottom: "0.5rem",
+          }}
+        >
+          <span
             style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: "1.6rem",
-              letterSpacing: "0.05em",
-              color: "#eef0f6",
-              marginBottom: "0.3rem",
+              width: "20px",
+              height: "1px",
+              background: "#00f5c8",
+              display: "inline-block",
             }}
-          >
-            Pick a Date 📅
-          </h3>
-          <p
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "0.7rem",
-              color: "#5a6278",
-              marginBottom: "1.5rem",
-            }}
-          >
-            Choose a day that works for you (Sundays off 🐝)
-          </p>
+          />
+          My Work
+        </div>
 
+        <h2
+          style={{
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: "clamp(2.2rem, 5vw, 3.8rem)",
+            letterSpacing: "0.04em",
+            lineHeight: "1",
+            marginBottom: "0.6rem",
+            color: "#eef0f6",
+          }}
+        >
+          Live Projects
+        </h2>
+
+        <p
+          style={{
+            fontSize: "0.92rem",
+            color: "#9ba3bb",
+            lineHeight: "1.7",
+            marginBottom: "2rem",
+            maxWidth: "500px",
+          }}
+        >
+          Real websites I&apos;ve built and deployed. {" "}
+          <a
+            href="https://github.com/bundoxb-art"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "#00f5c8", textDecoration: "none" }}
+          >
+            More on GitHub @bundoxb-art ↗
+          </a>
+        </p>
+
+        {/* FILTER TABS */}
+        <div
+          style={{
+            display: "flex",
+            gap: "0.5rem",
+            flexWrap: "wrap",
+            marginBottom: "2.5rem",
+          }}
+        >
+          {FILTERS.map((f) => (
+            <button
+              key={f}
+              onClick={() => setActive(f)}
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "0.7rem",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                padding: "0.45rem 1rem",
+                borderRadius: "50px",
+                border:
+                  active === f
+                    ? "1px solid #00f5c8"
+                    : "1px solid rgba(255,255,255,0.08)",
+                background:
+                  active === f
+                    ? "rgba(0,245,200,0.1)"
+                    : "transparent",
+                color: active === f ? "#00f5c8" : "#5a6278",
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+
+        {/* LOADING STATE */}
+        {loading && (
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
-              gap: "0.6rem",
+              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+              gap: "1.6rem",
             }}
           >
-            {days.map((day) => {
-              const isToday = isSameDay(day, today);
-              return (
-                <button
-                  key={day.toISOString()}
-                  onClick={() => handleDateSelect(day)}
-                  style={{
-                    background: "#0d1220",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: "12px",
-                    padding: "0.8rem 0.5rem",
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "0.2rem",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#00f5c8";
-                    e.currentTarget.style.background = "rgba(0,245,200,0.06)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                    e.currentTarget.style.background = "#0d1220";
-                  }}
-                >
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", color: "#5a6278", textTransform: "uppercase" }}>
-                    {format(day, "EEE")}
-                  </span>
-                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.4rem", color: "#eef0f6" }}>
-                    {format(day, "d")}
-                  </span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.55rem", color: "#00f5c8" }}>
-                    {isToday ? "Today" : format(day, "MMM")}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
-
-      {/* ── STEP 2: TIME ── */}
-      {step === "time" && selectedDate && (
-        <>
-          <button
-            onClick={() => setStep("date")}
-            style={{ background: "none", border: "none", color: "#5a6278", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.7rem", cursor: "pointer", marginBottom: "1rem", padding: 0 }}
-          >
-            ← Back
-          </button>
-
-          <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.6rem", letterSpacing: "0.05em", color: "#eef0f6", marginBottom: "0.3rem" }}>
-            Pick a Time 🕐
-          </h3>
-          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.7rem", color: "#00f5c8", marginBottom: "1.5rem" }}>
-            {format(selectedDate, "EEEE, MMMM d, yyyy")}
-          </p>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: "0.6rem" }}>
-            {TIME_SLOTS.map((time) => (
-              <button
-                key={time}
-                onClick={() => handleTimeSelect(time)}
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
                 style={{
                   background: "#0d1220",
                   border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: "10px",
-                  padding: "0.8rem",
-                  cursor: "pointer",
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: "0.78rem",
-                  color: "#eef0f6",
-                  transition: "all 0.2s",
+                  borderRadius: "12px",
+                  height: "380px",
+                  animation: "pulse 1.5s infinite",
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#00f5c8";
-                  e.currentTarget.style.background = "rgba(0,245,200,0.06)";
-                  e.currentTarget.style.color = "#00f5c8";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                  e.currentTarget.style.background = "#0d1220";
-                  e.currentTarget.style.color = "#eef0f6";
-                }}
-              >
-                {time}
-              </button>
+              />
             ))}
+            <style>{`
+              @keyframes pulse {
+                0%, 100% { opacity: 0.5; }
+                50% { opacity: 0.8; }
+              }
+            `}</style>
           </div>
-        </>
-      )}
+        )}
 
-      {/* ── STEP 3: DETAILS FORM ── */}
-      {step === "details" && selectedDate && selectedTime && (
-        <>
-          <button
-            onClick={() => setStep("time")}
-            style={{ background: "none", border: "none", color: "#5a6278", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.7rem", cursor: "pointer", marginBottom: "1rem", padding: 0 }}
-          >
-            ← Back
-          </button>
-
-          <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.6rem", letterSpacing: "0.05em", color: "#eef0f6", marginBottom: "0.3rem" }}>
-            Your Details 📝
-          </h3>
-
+        {/* ERROR STATE */}
+        {error && !loading && (
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.6rem",
-              background: "rgba(0,245,200,0.06)",
-              border: "1px solid rgba(0,245,200,0.15)",
-              borderRadius: "10px",
-              padding: "0.6rem 0.9rem",
-              marginBottom: "1.3rem",
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "0.72rem",
-              color: "#00f5c8",
-            }}
-          >
-            📅 {format(selectedDate, "EEE, MMM d")} · 🕐 {selectedTime}
-          </div>
-
-          <FormField label="Your Name *">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Jane Smith"
-              style={inputStyle}
-              onFocus={(e) => (e.target.style.borderColor = "#00f5c8")}
-              onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
-            />
-          </FormField>
-
-          <div className="form-row-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.9rem" }}>
-            <FormField label="Email">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="jane@email.com"
-                style={inputStyle}
-                onFocus={(e) => (e.target.style.borderColor = "#00f5c8")}
-                onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
-              />
-            </FormField>
-            <FormField label="Phone">
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+254..."
-                style={inputStyle}
-                onFocus={(e) => (e.target.style.borderColor = "#00f5c8")}
-                onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
-              />
-            </FormField>
-          </div>
-
-          <FormField label="Project Type">
-            <select
-              value={projectType}
-              onChange={(e) => setProjectType(e.target.value)}
-              style={{ ...inputStyle, cursor: "pointer" }}
-            >
-              {PROJECT_TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </FormField>
-
-          <FormField label="Project Details (optional)">
-            <textarea
-              value={details}
-              onChange={(e) => setDetails(e.target.value)}
-              placeholder="Tell me a bit about what you need..."
-              rows={3}
-              style={{ ...inputStyle, resize: "none" }}
-              onFocus={(e) => (e.target.style.borderColor = "#00f5c8")}
-              onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
-            />
-          </FormField>
-
-          <button
-            onClick={handleSubmit}
-            style={{
-              width: "100%",
-              background: "linear-gradient(135deg, #25D366, #1da851)",
-              color: "#fff",
-              border: "none",
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "0.82rem",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              padding: "0.9rem",
-              borderRadius: "50px",
-              cursor: "pointer",
-              fontWeight: "700",
-              marginTop: "0.5rem",
-              transition: "all 0.25s",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
-          >
-            💬 Confirm via WhatsApp
-          </button>
-        </>
-      )}
-
-      {/* ── STEP 4: SUCCESS ── */}
-      {step === "success" && selectedDate && selectedTime && (
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🎉</div>
-          <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.8rem", letterSpacing: "0.05em", color: "#eef0f6", marginBottom: "0.5rem" }}>
-            Almost Done!
-          </h3>
-          <p style={{ fontSize: "0.88rem", color: "#9ba3bb", lineHeight: "1.7", marginBottom: "1.5rem" }}>
-            Your WhatsApp message is ready. Send it to confirm your booking with Brian — he&apos;ll reply to lock it in!
-          </p>
-
-          <div
-            style={{
+              textAlign: "center",
+              padding: "4rem 2rem",
               background: "#0d1220",
-              border: "1px solid rgba(0,245,200,0.15)",
+              border: "1px solid rgba(255,255,255,0.08)",
               borderRadius: "12px",
-              padding: "1rem",
-              marginBottom: "1.5rem",
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "0.75rem",
-              color: "#00f5c8",
             }}
           >
-            📅 {format(selectedDate, "EEEE, MMMM d, yyyy")}
-            <br />
-            🕐 {selectedTime}
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-            
+            <div style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>
+              😕
+            </div>
+            <p
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "0.8rem",
+                color: "#5a6278",
+                marginBottom: "1rem",
+              }}
+            >
+              Couldn&apos;t load projects right now.
+            </p>
             <a
-              href={getCalendarLink()}
+              href="https://github.com/bundoxb-art"
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.5rem",
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "0.75rem",
+                color: "#00f5c8",
+                textDecoration: "none",
+              }}
+            >
+              View work on GitHub ↗
+            </a>
+          </div>
+        )}
+
+        {/* EMPTY STATE */}
+        {!loading && !error && filtered.length === 0 && (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "4rem 2rem",
+              background: "#0d1220",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "12px",
+            }}
+          >
+            <div style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>
+              🐝
+            </div>
+            <p
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "0.8rem",
+                color: "#5a6278",
+                marginBottom: "0.5rem",
+              }}
+            >
+              No projects in this category yet.
+            </p>
+            <button
+              onClick={() => setActive("All")}
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "0.7rem",
+                color: "#00f5c8",
                 background: "transparent",
-                border: "1px solid rgba(255,255,255,0.08)",
-                color: "#eef0f6",
+                border: "1px solid rgba(0,245,200,0.2)",
+                padding: "0.4rem 1rem",
+                borderRadius: "50px",
+                cursor: "pointer",
+                marginTop: "0.5rem",
+              }}
+            >
+              View All Projects
+            </button>
+          </div>
+        )}
+
+        {/* PROJECTS GRID */}
+        {!loading && !error && filtered.length > 0 && (
+          <div
+            className="projects-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+              gap: "1.6rem",
+            }}
+          >
+            {filtered.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+          </div>
+        )}
+
+        {/* BOTTOM CTA */}
+        {!loading && !error && (
+          <div
+            style={{
+              marginTop: "2.5rem",
+              padding: "2rem",
+              background:
+                "linear-gradient(135deg, rgba(0,245,200,0.05), rgba(139,92,246,0.04))",
+              border: "1px solid rgba(0,245,200,0.2)",
+              borderRadius: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "1rem",
+            }}
+          >
+            <p
+              style={{
+                fontSize: "0.95rem",
+                color: "#9ba3bb",
+                maxWidth: "400px",
+              }}
+            >
+              <strong style={{ color: "#eef0f6" }}>
+                Want a website like these?
+              </strong>{" "}
+              I build yours fast, clean, deployed in days.
+            </p>
+            <a
+              href="/#contact"
+              style={{
                 fontFamily: "'JetBrains Mono', monospace",
                 fontSize: "0.78rem",
-                padding: "0.85rem",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: "#05070d",
+                background: "#00f5c8",
+                padding: "0.85rem 1.8rem",
                 borderRadius: "50px",
                 textDecoration: "none",
+                fontWeight: "700",
+                whiteSpace: "nowrap",
+              }}
+            >
+              💼 Start Your Project
+            </a>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// ── PROJECT CARD ──
+function ProjectCard({ project }: { project: Project }) {
+  const [hovered, setHovered] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  const screenshotUrl = project.image_url ||
+    (project.live_url
+      ? `https://api.microlink.io/?url=${encodeURIComponent(project.live_url)}&screenshot=true&meta=false&embed=screenshot.url`
+      : null);
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: "#0d1220",
+        border: hovered
+          ? "1px solid rgba(0,245,200,0.3)"
+          : "1px solid rgba(255,255,255,0.08)",
+        borderRadius: "12px",
+        overflow: "hidden",
+        transition: "all 0.35s",
+        transform: hovered ? "translateY(-6px)" : "translateY(0)",
+        boxShadow: hovered ? "0 30px 60px rgba(0,0,0,0.45)" : "none",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+      }}
+    >
+      {/* TOP ACCENT LINE */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0, left: 0, right: 0,
+          height: "2px",
+          background: "linear-gradient(90deg, #00f5c8, #8b5cf6)",
+          transform: hovered ? "scaleX(1)" : "scaleX(0)",
+          transformOrigin: "left",
+          transition: "transform 0.4s ease",
+          zIndex: 2,
+        }}
+      />
+
+      {/* FEATURED BADGE */}
+      {project.featured && (
+        <div
+          style={{
+            position: "absolute",
+            top: "12px",
+            left: "12px",
+            zIndex: 5,
+            background: "#f5c842",
+            color: "#05070d",
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "0.55rem",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            padding: "0.2rem 0.55rem",
+            borderRadius: "20px",
+            fontWeight: "700",
+          }}
+        >
+          ⭐ Featured
+        </div>
+      )}
+
+      {/* SCREENSHOT */}
+      <div
+        style={{
+          height: "200px",
+          background: "#090c14",
+          overflow: "hidden",
+          position: "relative",
+        }}
+      >
+        {screenshotUrl && !imgError ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={screenshotUrl}
+            alt={project.name}
+            onError={() => setImgError(true)}
+            style={{
+              width: "100%",
+              height: "200px",
+              objectFit: "cover",
+              display: "block",
+              transition: "transform 0.5s",
+              transform: hovered ? "scale(1.05)" : "scale(1)",
+            }}
+          />
+        ) : (
+          /* FALLBACK */
+          <div
+            style={{
+              width: "100%",
+              height: "200px",
+              background:
+                "linear-gradient(135deg, #0d1a2f, #0d2a1f)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.5rem",
+            }}
+          >
+            <span style={{ fontSize: "2.5rem" }}>🌐</span>
+            <span
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "0.7rem",
+                color: "#00f5c8",
+                letterSpacing: "0.1em",
+              }}
+            >
+              {project.name}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* CARD BODY */}
+      <div
+        style={{
+          padding: "1.4rem",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {/* CATEGORY */}
+        <div
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "0.6rem",
+            color: "#00f5c8",
+            letterSpacing: "0.15em",
+            textTransform: "uppercase",
+            marginBottom: "0.4rem",
+          }}
+        >
+          {project.category}
+          {project.role && ` · ${project.role}`}
+        </div>
+
+        {/* TITLE */}
+        <h3
+          style={{
+            fontSize: "1.1rem",
+            fontWeight: "700",
+            letterSpacing: "-0.01em",
+            marginBottom: "0.4rem",
+            lineHeight: "1.3",
+            color: "#eef0f6",
+          }}
+        >
+          {project.name}
+        </h3>
+
+        {/* PROBLEM */}
+        {project.problem && (
+          <p
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "0.65rem",
+              color: "#f5c842",
+              marginBottom: "0.35rem",
+            }}
+          >
+            {project.problem}
+          </p>
+        )}
+
+        {/* DESCRIPTION */}
+        <p
+          style={{
+            fontSize: "0.83rem",
+            lineHeight: "1.7",
+            color: "#9ba3bb",
+            flex: 1,
+          }}
+        >
+          {project.description}
+        </p>
+
+        {/* OUTCOME */}
+        {project.outcome && (
+          <p
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "0.65rem",
+              color: "#00f5c8",
+              marginTop: "0.5rem",
+            }}
+          >
+            {project.outcome}
+          </p>
+        )}
+
+        {/* FOOTER */}
+        <div
+          style={{
+            marginTop: "1rem",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "0.5rem",
+            flexWrap: "wrap",
+          }}
+        >
+          {/* TECH TAGS */}
+          <div
+            style={{
+              display: "flex",
+              gap: "0.3rem",
+              flexWrap: "wrap",
+              flex: 1,
+            }}
+          >
+            {project.tech_stack?.slice(0, 3).map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: "0.58rem",
+                  color: "#5a6278",
+                  padding: "0.22rem 0.5rem",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "4px",
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          {/* LIVE LINK */}
+          {project.live_url && (
+            <a
+              href={project.live_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "0.62rem",
+                color: "#00f5c8",
+                background: "rgba(0,245,200,0.07)",
+                border: "1px solid rgba(0,245,200,0.2)",
+                padding: "0.28rem 0.7rem",
+                borderRadius: "20px",
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
                 transition: "all 0.2s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "#00f5c8";
-                e.currentTarget.style.color = "#00f5c8";
+                e.currentTarget.style.background = "rgba(0,245,200,0.15)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                e.currentTarget.style.color = "#eef0f6";
+                e.currentTarget.style.background = "rgba(0,245,200,0.07)";
               }}
             >
-              📆 Add to Google Calendar
+              🔗 Visit Live
             </a>
-
-            <button
-              onClick={reset}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#5a6278",
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: "0.7rem",
-                cursor: "pointer",
-                padding: "0.5rem",
-              }}
-            >
-              ← Book Another Time
-            </button>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
-
-// ── HELPERS ──
-function FormField({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div style={{ marginBottom: "0.9rem" }}>
-      <label
-        style={{
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: "0.63rem",
-          color: "#5a6278",
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          display: "block",
-          marginBottom: "0.4rem",
-        }}
-      >
-        {label}
-      </label>
-      {children}
-    </div>
-  );
-}
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  background: "#05070d",
-  border: "1px solid rgba(255,255,255,0.08)",
-  color: "#eef0f6",
-  fontFamily: "'Outfit', sans-serif",
-  fontSize: "0.87rem",
-  padding: "0.72rem 0.9rem",
-  borderRadius: "8px",
-  outline: "none",
-  minHeight: "44px",
-  transition: "border-color 0.2s",
-};

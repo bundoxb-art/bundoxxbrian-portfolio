@@ -15,13 +15,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ── Save lead to database ──
-    await supabaseAdmin.from("pf_leads").insert({
-      name,
-      email: email || null,
-      subject: subject || null,
-      message,
-    });
+    if (!supabaseAdmin) {
+      console.warn("Supabase is not configured; skipping lead persistence.");
+    } else {
+      // ── Save lead to database ──
+      await supabaseAdmin.from("pf_leads").insert({
+        name,
+        email: email || null,
+        subject: subject || null,
+        message,
+      });
+    }
 
     // ── 1. Notify Brian via WhatsApp (CallMeBot) ──
     const waText = `🐝 NEW LEAD!\n\n👤 ${name}\n✉️ ${email || "Not provided"}\n🏷️ ${subject || "General Inquiry"}\n\n💬 ${message}`;

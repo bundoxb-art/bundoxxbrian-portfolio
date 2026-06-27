@@ -12,10 +12,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Valid email required" }, { status: 400 });
     }
 
-    // Save subscriber (skip if already subscribed)
-    await supabaseAdmin
-      .from("pf_subscribers")
-      .upsert({ email, source: "tech_guide" }, { onConflict: "email", ignoreDuplicates: true });
+    if (!supabaseAdmin) {
+      console.warn("Supabase is not configured; skipping subscriber persistence.");
+    } else {
+      // Save subscriber (skip if already subscribed)
+      await supabaseAdmin
+        .from("pf_subscribers")
+        .upsert({ email, source: "tech_guide" }, { onConflict: "email", ignoreDuplicates: true });
+    }
 
     // Notify Brian
     const waText = `🐝 New Dev Guide subscriber!\n\n✉️ ${email}`;
