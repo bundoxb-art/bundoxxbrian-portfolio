@@ -291,7 +291,7 @@ export default function PortalLogin() {
               >
                 No account needed. Brian will add you when your
                 project starts. Questions?{" "}
-                
+                <a
                   href="https://wa.me/254768771559"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -310,7 +310,7 @@ export default function PortalLogin() {
             marginTop: "1.5rem",
           }}
         >
-          
+          <a
             href="/"
             style={{
               fontFamily: "'JetBrains Mono', monospace",

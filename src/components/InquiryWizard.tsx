@@ -194,8 +194,12 @@ export default function InquiryWizard() {
               flexWrap: "wrap",
             }}
           >
-            
-              href={`https://wa.me/254768771559?text=${encodeURIComponent(`Hi Brian! I just submitted an inquiry. I'm ${name} and I need help with ${projectType}.`)}`}
+            <a
+              href={`https://wa.me/254768771559?text=${encodeURIComponent(
+                "Hi Brian! I just submitted an inquiry. I need help with " +
+                  projectType +
+                  "."
+              )}`}
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -213,7 +217,7 @@ export default function InquiryWizard() {
             >
               💬 Chat on WhatsApp
             </a>
-            
+            <a
               href="/book"
               style={{
                 background: "rgba(0,245,200,0.08)",

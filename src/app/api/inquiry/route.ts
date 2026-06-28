@@ -13,6 +13,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: "Supabase admin client is not configured" },
+        { status: 500 }
+      );
+    }
+
     // Save to Supabase
     const { error } = await supabaseAdmin
       .from("pf_inquiries")

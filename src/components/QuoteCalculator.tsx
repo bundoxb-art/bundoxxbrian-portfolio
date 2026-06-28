@@ -443,7 +443,7 @@ export default function QuoteCalculator() {
               </div>
 
               {/* WA CTA */}
-              
+              <a
                 href={`https://wa.me/254768771559?text=${buildWaMessage()}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -476,7 +476,7 @@ export default function QuoteCalculator() {
                 💬 Send Quote to Brian
               </a>
 
-              
+              <a
                 href="/book"
                 style={{
                   display: "flex",

@@ -222,7 +222,7 @@ export default function ClientDashboard({
               Brian hasn&apos;t set up your project dashboard yet.
               Reach out to get started!
             </p>
-            
+            <a
               href="https://wa.me/254768771559"
               target="_blank"
               rel="noopener noreferrer"
@@ -587,7 +587,7 @@ export default function ClientDashboard({
                 >
                   {client.deliverables.map(
                     (item: Deliverable, i: number) => (
-                      
+                      <a
                         key={i}
                         href={item.url}
                         target="_blank"
@@ -785,7 +785,7 @@ export default function ClientDashboard({
                   gap: "0.6rem",
                 }}
               >
-                
+                <a
                   href="https://wa.me/254768771559"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -805,7 +805,7 @@ export default function ClientDashboard({
                 >
                   💬 WhatsApp
                 </a>
-                
+                <a
                   href="mailto:Bundoxb@gmail.com"
                   style={{
                     background: "transparent",
