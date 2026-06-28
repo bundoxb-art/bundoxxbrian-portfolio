@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
+import CurrentlyBuilding from "@/components/CurrentlyBuilding";
 
 const slides = [
   {
@@ -143,6 +144,9 @@ export default function Hero() {
             Full-Stack Developer · Brand Designer · Virtual Assistant.
             Based in Mombasa, Kenya. Real results for real clients.
           </p>
+
+          {/* CURRENTLY BUILDING WIDGET */}
+          <CurrentlyBuilding />
 
           {/* BUTTONS */}
           <div className="flex gap-4 flex-wrap mt-8">
