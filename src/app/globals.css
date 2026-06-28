@@ -260,6 +260,14 @@ section[id] {
   }
 }
 
+/* ── QUOTE CALCULATOR ── */
+@media (max-width: 768px) {
+  .quote-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+}
+
 /* ── BOTTOM NAV ── */
 @media (max-width: 768px) {
   .bn-item {
