@@ -116,7 +116,7 @@ export default function Hero() {
           <p
             className="mt-4"
             style={{
-              fontSize: "1.1rem",
+              fontSize: "1.15rem",
               fontWeight: "600",
               color: "#eef0f6",
               lineHeight: "1.5",
@@ -127,7 +127,7 @@ export default function Hero() {
             <span style={{ color: "#00f5c8" }}>
               fast, clean web & mobile apps
             </span>{" "}
-            that help businesses grow online.
+            that help Kenyan businesses grow online.
           </p>
 
           {/* DESC */}
