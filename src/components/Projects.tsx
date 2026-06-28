@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
@@ -332,7 +333,7 @@ export default function Projects() {
               </strong>{" "}
               I build yours fast, clean, deployed in days.
             </p>
-            <a
+            <Link
               href="/#contact"
               style={{
                 fontFamily: "'JetBrains Mono', monospace",
@@ -349,7 +350,7 @@ export default function Projects() {
               }}
             >
               💼 Start Your Project
-            </a>
+            </Link>
           </div>
         )}
       </div>

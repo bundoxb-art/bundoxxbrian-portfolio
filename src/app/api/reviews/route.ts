@@ -2,7 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
 export async function GET() {
-  const { data, error } = await supabaseAdmin
+  const admin = supabaseAdmin;
+  if (!admin) {
+    return NextResponse.json(
+      { error: "Supabase is not configured" },
+      { status: 500 }
+    );
+  }
+
+  const { data, error } = await admin
     .from("pf_reviews")
     .select("*")
     .eq("approved", true)
@@ -36,7 +44,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { error } = await supabaseAdmin
+    const admin = supabaseAdmin;
+    if (!admin) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 500 }
+      );
+    }
+
+    const { error } = await admin
       .from("pf_reviews")
       .insert({
         rating,
