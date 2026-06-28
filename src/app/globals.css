@@ -200,6 +200,48 @@ body {
   }
 }
 
+/* ── FOOTER GRID ── */
+@media (max-width: 768px) {
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+}
+
+/* ── HERO BUTTONS STACK ON SMALL PHONES ── */
+@media (max-width: 380px) {
+  .flex.gap-4.flex-wrap.mt-8 a {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* ── BETTER TYPOGRAPHY CONSISTENCY ── */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* ── SMOOTH SCROLLING WITH OFFSET ── */
+section[id] {
+  scroll-margin-top: 90px;
+}
+
+/* ── TAP HIGHLIGHT REMOVAL (mobile) ── */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── SELECTION COLOR ── */
+::selection {
+  background: rgba(0, 245, 200, 0.25);
+  color: #eef0f6;
+}
+
+
 /* ── BOOKING CALENDAR ── */
 @media (max-width: 480px) {
   .booking-wrap {
