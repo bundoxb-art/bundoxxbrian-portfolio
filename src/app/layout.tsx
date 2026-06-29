@@ -5,6 +5,8 @@ import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import SocialDock from "@/components/SocialDock";
 import ChatWidget from "@/components/ChatWidget";
+import { LanguageProvider } from "@/lib/LanguageContext";
+import { ThemeProvider } from "@/lib/ThemeContext";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -263,11 +265,15 @@ export default function RootLayout({
         className={`${outfit.variable} ${jetbrainsMono.variable} antialiased`}
         style={{ paddingBottom: "80px", background: "#05070d" }}
       >
-        <Navbar />
-        {children}
-        <ChatWidget />
-        <BottomNav />
-        <SocialDock />
+        <ThemeProvider>
+          <LanguageProvider>
+            <Navbar />
+            {children}
+            <ChatWidget />
+            <BottomNav />
+            <SocialDock />
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

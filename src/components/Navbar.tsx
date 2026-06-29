@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useLang } from "@/lib/LanguageContext";
+import { useTheme } from "@/lib/ThemeContext";
 
 const navLinks = [
   { label: "About", href: "#about" },
@@ -18,6 +20,8 @@ const navLinks = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { lang, toggleLang } = useLang();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -93,35 +97,79 @@ export default function Navbar() {
           ))}
         </ul>
 
-        {/* HIRE ME BUTTON */}
-        <Link
-          href="#contact"
-          className="hidden md:flex items-center gap-2 no-underline"
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: "0.72rem",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "#05070d",
-            background: "#00f5c8",
-            padding: "0.55rem 1.3rem",
-            borderRadius: "50px",
-            textDecoration: "none",
-            fontWeight: "700",
-            boxShadow: "0 4px 20px rgba(0,245,200,0.3)",
-            transition: "all 0.25s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#00d4ad";
-            e.currentTarget.style.transform = "translateY(-2px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "#00f5c8";
-            e.currentTarget.style.transform = "translateY(0)";
-          }}
-        >
-          💼 Hire Me
-        </Link>
+        {/* THEME TOGGLE, LANGUAGE TOGGLE + HIRE ME BUTTON */}
+        <div className="hidden md:flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "0.9rem",
+              color: theme === "dark" ? "#f5c842" : "#5a6278",
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.2s",
+              marginRight: "0.4rem",
+              flexShrink: 0,
+            }}
+            title={theme === "dark" ? "Switch to Light" : "Switch to Dark"}
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
+
+          <button
+            onClick={toggleLang}
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "0.7rem",
+              letterSpacing: "0.1em",
+              color: "#00f5c8",
+              background: "rgba(0,245,200,0.08)",
+              border: "1px solid rgba(0,245,200,0.2)",
+              padding: "0.4rem 0.85rem",
+              borderRadius: "50px",
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+          >
+            {lang === "en" ? "SW" : "EN"}
+          </button>
+
+          <Link
+            href="#contact"
+            className="hidden md:flex items-center gap-2 no-underline"
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "0.72rem",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "#05070d",
+              background: "#00f5c8",
+              padding: "0.55rem 1.3rem",
+              borderRadius: "50px",
+              textDecoration: "none",
+              fontWeight: "700",
+              boxShadow: "0 4px 20px rgba(0,245,200,0.3)",
+              transition: "all 0.25s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#00d4ad";
+              e.currentTarget.style.transform = "translateY(-2px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#00f5c8";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            💼 Hire Me
+          </Link>
+        </div>
 
         {/* HAMBURGER — mobile */}
         <button

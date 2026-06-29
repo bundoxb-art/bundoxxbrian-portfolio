@@ -35,6 +35,32 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── LIGHT MODE ── */
+.light {
+  --bg: #f8fafb;
+  --bg2: #f0f4f8;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --soft: #475569;
+}
+
+.light body {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+.light section {
+  background: var(--bg) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.light .dark-card {
+  background: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  color: #0f172a !important;
+}
+
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #05070d; }
 ::-webkit-scrollbar-thumb { background: #5a6278; border-radius: 4px; }

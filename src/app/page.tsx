@@ -13,7 +13,7 @@ import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
-    <main style={{ background: "#05070d", minHeight: "100vh" }}>
+    <main style={{ background: "var(--bg, #05070d)", minHeight: "100vh" }}>
       <Hero />
       <TrustBar />
       <About />
