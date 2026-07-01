@@ -108,6 +108,11 @@ body {
     grid-template-columns: 1fr !important;
   }
 
+  /* GitHub grid — single column */
+  .github-grid {
+    grid-template-columns: 1fr !important;
+  }
+
   /* Trust bar — wrap */
   .trust-bar {
     gap: 0.8rem !important;

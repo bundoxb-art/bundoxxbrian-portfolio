@@ -7,13 +7,14 @@ import { useLang } from "@/lib/LanguageContext";
 import { useTheme } from "@/lib/ThemeContext";
 
 const navLinks = [
-  { label: "About", href: "#about" },
-  { label: "Work", href: "#projects" },
-  { label: "Reviews", href: "#feedback" },
-  { label: "Skills", href: "#skills" },
-  { label: "Pricing", href: "#services" },
+  { label: "About", href: "/#about" },
+  { label: "Work", href: "/#projects" },
+  { label: "Reviews", href: "/#feedback" },
+  { label: "Skills", href: "/#skills" },
+  { label: "Pricing", href: "/#services" },
+  { label: "Blog", href: "/blog" },
   { label: "Book Call", href: "/book" },
-  { label: "Contact", href: "#contact" },
+  { label: "Contact", href: "/#contact" },
   { label: "Portal", href: "/portal" },
 ];
 

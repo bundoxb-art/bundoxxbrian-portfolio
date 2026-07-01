@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import MpesaSTKPush from "@/components/MpesaSTKPush";
 
 const PAYBILL = "880100";
 const ACCOUNT = "488007";
@@ -222,24 +223,8 @@ export default function Payment() {
               ))}
             </div>
 
-            {/* STK PUSH TEASER */}
-            <div
-              style={{
-                marginTop: "1.8rem",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.6rem",
-                background: "rgba(245,200,66,0.06)",
-                border: "1px dashed rgba(245,200,66,0.3)",
-                borderRadius: "50px",
-                padding: "0.6rem 1.2rem",
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: "0.68rem",
-                color: "#f5c842",
-                letterSpacing: "0.06em",
-              }}
-            >
-              ⚡ Instant Pay (STK Push) — Coming Soon
+            <div style={{ marginTop: "1.8rem" }}>
+              <MpesaSTKPush />
             </div>
           </div>
         </div>
